@@ -19,7 +19,7 @@ class Configuration
     /**
      * Application name.
      */
-    public const APP_NAME = 'Vaííčko MVC FW';
+    public const APP_NAME = 'BaletnaSkola';
 
     /**
      * Version of the framework.
@@ -30,8 +30,8 @@ class Configuration
      * Database connection settings.
      */
     public const DB_HOST = 'db';  // Hostname for the database service (defined in docker/docker-compose.yml)
-    public const DB_NAME = 'vaiicko_db'; // Database name (defined in docker/.env)
-    public const DB_USER = 'vaiicko_user'; // Username for database access (defined in docker/.env)
+    public const DB_NAME = 'balet_app_db'; // Database name (defined in docker/.env)
+    public const DB_USER = 'balet_user'; // Username for database access (defined in docker/.env)
     public const DB_PASS = 'dtb456'; // Password for database access (defined in docker/.env)
 
     /**
