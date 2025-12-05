@@ -1,3 +1,5 @@
+
+
 <?php
 
 /** @var string $contentHTML */
@@ -27,31 +29,80 @@
             crossorigin="anonymous"
     >
 
-    <!-- vlastné štýly -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+
+    <!-- Tvoje vlastné štýly -->
     <link rel="stylesheet" href="<?= $link->asset('css/styl.css') ?>">
 
 </head>
 <body>
 
 <header>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="<?= $link->url('home.index') ?>">
-                <img src="<?= $link->asset('images/pointe_shoes.png') ?>"
-                     title="<?= App\Configuration::APP_NAME ?>"
-                     alt="Logo baletnej skoly"
-                     style="height: 32px" class="me-2">
-                <span><?= App\Configuration::APP_NAME ?></span>
-            </a>
+    <!-- Horný panel -->
+    <nav class="navbar navbar-light bg-white border-bottom">
+        <div class="container-fluid">
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#mainNavbar" aria-controls="mainNavbar"
-                    aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+            <!-- Ľavá strana: hamburger + logo -->
+            <div class="d-flex align-items-center">
+                <!-- Hamburger pre sidebar (viditeľný hlavne na mobile) -->
+                <button class="btn btn-outline-secondary me-2 d-md-none"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#sidebarMenu"
+                        aria-controls="sidebarMenu"
+                        aria-expanded="false"
+                        aria-label="Toggle navigation">
+                    ☰
+                </button>
 
-            <div class="collapse navbar-collapse" id="mainNavbar">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <a class="navbar-brand d-flex align-items-center" href="<?= $link->url('home.index') ?>">
+                    <img src="<?= $link->asset('images/pointe_shoes.png') ?>"
+                         title="<?= App\Configuration::APP_NAME ?>"
+                         alt="Framework Logo"
+                         style="height: 32px" class="me-2">
+                    <span><?= App\Configuration::APP_NAME ?></span>
+                </a>
+            </div>
+
+            <!-- Pravá strana: notifikácie / login -->
+            <div class="d-flex align-items-center">
+
+
+
+                <!-- Pravá strana: notifikácie / login -->
+                <div class="d-flex align-items-center">
+
+                    <?php if ($user->isLoggedIn()) { ?>
+                        <!-- Notification icon -->
+                        <a href="#" class="nav-link me-3 text-secondary">
+                            <i class="bi bi-bell" style="font-size: 1.3rem;"></i>
+                        </a>
+
+                        <!-- Logged in user -->
+                        <span class="navbar-text me-3">Prihlásený: <b><?= htmlspecialchars($user->getName()) ?></b></span>
+
+                        <a class="nav-link" href="<?= $link->url('auth.logout') ?>">Odhlásiť</a>
+
+                    <?php } else { ?>
+                        <!-- Login for guests -->
+                        <a class="nav-link" href="<?= App\Configuration::LOGIN_URL ?>">Prihlásiť</a>
+                    <?php } ?>
+
+                </div>
+
+        </div>
+    </nav>
+</header>
+
+<div class="container-fluid">
+    <div class="row flex-nowrap">
+
+        <!-- Ľavý sidebar -->
+        <nav id="sidebarMenu"
+             class="col-12 col-md-3 col-lg-2 bg-light sidebar collapse d-md-block">
+            <div class="position-sticky pt-3">
+                <ul class="nav flex-column sidebar-nav">
                     <li class="nav-item">
                         <a class="nav-link" href="<?= $link->url('home.index') ?>">Domov</a>
                     </li>
@@ -67,40 +118,25 @@
                     <li class="nav-item">
                         <a class="nav-link" href="<?= $link->url('skupina.index') ?>">Skupiny</a>
                     </li>
-                </ul>
-
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                    <?php if ($user->isLoggedIn()) { ?>
-                        <li class="nav-item">
-                            <span class="navbar-text me-3">
-                                Prihlásený: <b><?= htmlspecialchars($user->getName()) ?></b>
-                            </span>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="<?= $link->url('auth.logout') ?>">Odhlásiť</a>
-                        </li>
-                    <?php } else { ?>
-                        <li class="nav-item">
-                            <a class="nav-link" href="<?= App\Configuration::LOGIN_URL ?>">Prihlásiť</a>
-                        </li>
-                    <?php } ?>
+                    <!-- neskôr môžeš pridať ďalšie sekcie -->
                 </ul>
             </div>
-        </div>
-    </nav>
-</header>
+        </nav>
 
-<main class="py-4">
-    <div class="container">
-        <div class="web-content">
-            <?= $contentHTML ?>
-        </div>
+        <!-- Hlavný obsah -->
+        <main class="col py-4 main-content">
+            <div class="container-fluid">
+                <div class="web-content">
+                    <?= $contentHTML ?>
+                </div>
+            </div>
+        </main>
     </div>
-</main>
+</div>
 
 <footer class="border-top mt-4 py-3">
     <div class="container text-center text-muted small">
-        &copy; <?= date('Y') ?> <?= App\Configuration::APP_NAME ?> – Tanečná škola
+        &copy; <?= date('Y') ?> <?= App\Configuration::APP_NAME ?> – Baletná škola
     </div>
 </footer>
 
