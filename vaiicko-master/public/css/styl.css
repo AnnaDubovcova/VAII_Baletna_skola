@@ -1,7 +1,150 @@
-.navbar {
-    border-bottom: 1px solid grey;
+/* -------------------------------------------
+   GLOBAL STYLES
+------------------------------------------- */
+body {
+    background-color: #fdf7fa; /* soft light pink background */
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    color: #333;
 }
 
-.navbar-brand img {
-    width: 50px;
+/* Centered content container */
+.container {
+    max-width: 1100px;
+}
+
+
+/* -------------------------------------------
+   NAVBAR
+------------------------------------------- */
+.navbar {
+    background-color: #f2c7d8 !important; /* ballet pastel pink */
+}
+
+/* Navbar brand (logo + text) */
+.navbar .navbar-brand {
+    color: #4b2e5e !important; /* deep purple */
+    font-weight: 600;
+}
+
+/* Navbar links */
+.navbar .nav-link {
+    color: #4b2e5e !important;
+    font-weight: 500;
+}
+
+/* Hover effect */
+.navbar .nav-link:hover {
+    color: #ffffff !important;
+    text-decoration: underline;
+}
+
+/* User text */
+.navbar .navbar-text {
+    color: #4b2e5e !important;
+    font-weight: 500;
+}
+
+
+/* -------------------------------------------
+   MAIN CONTENT AREA
+------------------------------------------- */
+.web-content {
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+/* Page titles */
+.page-title {
+    font-size: 1.7rem;
+    font-weight: 600;
+    color: #4b2e5e;
+    border-bottom: 2px solid #e0cfe0;
+    padding-bottom: 6px;
+    margin-bottom: 20px;
+}
+
+
+/* -------------------------------------------
+   TABLES
+------------------------------------------- */
+table.table thead {
+    background-color: #4b2e5e;
+    color: #fff;
+}
+
+table.table tbody tr:hover {
+    background-color: #f3e4ef;
+}
+
+/* Buttons inside tables */
+.table .btn {
+    border-radius: 20px;
+}
+
+
+/* -------------------------------------------
+   FORMS
+------------------------------------------- */
+form .form-label {
+    font-weight: 600;
+    color: #4b2e5e;
+}
+
+form input, form select, form textarea {
+    border-radius: 8px;
+    border: 1px solid #d8bfd8;
+}
+
+form input:focus,
+form select:focus,
+form textarea:focus {
+    border-color: #a36ba3;
+    box-shadow: 0 0 4px rgba(163, 107, 163, 0.4);
+}
+
+/* Submit button */
+.btn-primary {
+    background-color: #a36ba3 !important;
+    border-color: #a36ba3 !important;
+    border-radius: 25px;
+    padding: 6px 18px;
+}
+
+.btn-primary:hover {
+    background-color: #8b588b !important;
+}
+
+
+/* -------------------------------------------
+   FOOTER
+------------------------------------------- */
+footer {
+    background: #f2c7d8;
+    padding: 15px 0;
+    text-align: center;
+    color: #4b2e5e;
+    margin-top: 30px;
+    font-size: 0.9rem;
+}
+
+/* Small muted footer text */
+footer small,
+footer .text-muted {
+    color: #4b2e5e !important;
+}
+
+
+/* -------------------------------------------
+   RESPONSIVE DESIGN
+------------------------------------------- */
+@media (max-width: 768px) {
+    .web-content {
+        padding: 15px;
+    }
+
+    .navbar .navbar-brand span {
+        font-size: 1rem;
+    }
 }
