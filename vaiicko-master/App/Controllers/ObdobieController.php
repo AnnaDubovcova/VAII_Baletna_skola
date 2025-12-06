@@ -7,6 +7,9 @@ use Framework\Core\BaseController;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
 
+
+
+
 class ObdobieController extends BaseController
 {
     public function index(Request $request): Response
@@ -30,7 +33,7 @@ class ObdobieController extends BaseController
             if (empty($errors)) {
                 $obdobie->save();
                 // po uložení presmeruj na zoznam
-                return $this->redirect('obdobie.index');
+                return $this->redirect($this->url('obdobie.index'));
             }
         }
 
@@ -47,7 +50,7 @@ class ObdobieController extends BaseController
         $obdobie = Obdobie::getOne($id_obdobie);
 
         if ($obdobie === null) {
-            // podľa toho, ako riešiš chyby – jednoduchá verzia:
+
             throw new \Exception('Obdobie nenájdené.');
         }
 
@@ -58,7 +61,7 @@ class ObdobieController extends BaseController
 
             if (empty($errors)) {
                 $obdobie->save();
-                return $this->redirect('obdobie.index');
+                return $this->index($request);
             }
         }
 
@@ -79,7 +82,8 @@ class ObdobieController extends BaseController
             throw new \Exception('Obdobie nenájdené.');
         }
 
-        return $this->redirect('obdobie.index');
+        return $this->redirect($this->url('obdobie.index'));
+
     }
 
     /**
@@ -87,10 +91,10 @@ class ObdobieController extends BaseController
      */
     private function fillAndValidate(Request $request, Obdobie $obdobie, array &$errors): void
     {
-        $nazov = trim((string)$request->getValue('nazov'));
-        $datumOd = trim((string)$request->getValue('datum_od'));
-        $datumDo = trim((string)$request->getValue('datum_do'));
-        $popis = trim((string)$request->getValue('popis'));
+        $nazov = trim((string)$request->value('nazov'));
+        $datumOd = trim((string)$request->value('datum_od'));
+        $datumDo = trim((string)$request->value('datum_do'));
+        $popis = trim((string)$request->value('popis'));
 
         // --- Server-side validácia ---
 
