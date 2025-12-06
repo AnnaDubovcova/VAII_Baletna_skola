@@ -1,54 +1,80 @@
 /* -------------------------------------------
-   GLOBAL STYLES
+   GLOBAL
 ------------------------------------------- */
 body {
-    background-color: #fdf7fa; /* soft light pink background */
+    background-color: #fdf7fa; /* soft light pink */
     font-family: "Segoe UI", Roboto, Arial, sans-serif;
     color: #333;
 }
 
-/* Centered content container */
+/* Ak chceš – ale používaš hlavne .container-fluid,
+   takže toto nie je životne dôležité. */
 .container {
     max-width: 1100px;
 }
 
-
 /* -------------------------------------------
-   NAVBAR
+   NAVBAR (prepis Bootstrapu)
 ------------------------------------------- */
 .navbar {
     background-color: #f2c7d8 !important; /* ballet pastel pink */
 }
 
-/* Navbar brand (logo + text) */
 .navbar .navbar-brand {
-    color: #4b2e5e !important; /* deep purple */
+    color: #4b2e5e !important;
     font-weight: 600;
 }
 
-/* Navbar links */
 .navbar .nav-link {
     color: #4b2e5e !important;
     font-weight: 500;
 }
 
-/* Hover effect */
 .navbar .nav-link:hover {
     color: #ffffff !important;
     text-decoration: underline;
 }
 
-/* User text */
 .navbar .navbar-text {
     color: #4b2e5e !important;
     font-weight: 500;
 }
 
+/* -------------------------------------------
+   SIDEBAR
+------------------------------------------- */
+.sidebar {
+    min-height: calc(100vh - 56px); /* celé okno mínus výška topbaru */
+    padding-top: 1rem;
+    border-right: 1px solid #e0dae0;
+    background-color: #fdf7fa !important;
+}
+
+.sidebar-nav .nav-link {
+    color: #4b2e5e;
+    padding: 0.4rem 1.25rem;
+    border-radius: 999px;
+    margin: 0.15rem 0.5rem;
+    font-weight: 500;
+}
+
+/* hover */
+.sidebar-nav .nav-link:hover {
+    background-color: #f2c7d8;
+    color: #311b3f;
+}
+
+/* AKTÍVNY LINK v sidebare */
+.sidebar-nav .nav-link.active {
+    background-color: #a36ba3;
+    color: #fff !important;
+    font-weight: 600;
+}
 
 /* -------------------------------------------
-   MAIN CONTENT AREA
+   HLAVNÝ OBSAH
 ------------------------------------------- */
-.web-content {
+.main-content .web-content {
     background: #ffffff;
     padding: 25px;
     border-radius: 10px;
@@ -65,7 +91,6 @@ body {
     margin-bottom: 20px;
 }
 
-
 /* -------------------------------------------
    TABLES
 ------------------------------------------- */
@@ -78,11 +103,9 @@ table.table tbody tr:hover {
     background-color: #f3e4ef;
 }
 
-/* Buttons inside tables */
 .table .btn {
     border-radius: 20px;
 }
-
 
 /* -------------------------------------------
    FORMS
@@ -92,7 +115,9 @@ form .form-label {
     color: #4b2e5e;
 }
 
-form input, form select, form textarea {
+form input,
+form select,
+form textarea {
     border-radius: 8px;
     border: 1px solid #d8bfd8;
 }
@@ -104,7 +129,7 @@ form textarea:focus {
     box-shadow: 0 0 4px rgba(163, 107, 163, 0.4);
 }
 
-/* Submit button */
+/* Submit button (prepis Bootstrap .btn-primary) */
 .btn-primary {
     background-color: #a36ba3 !important;
     border-color: #a36ba3 !important;
@@ -115,7 +140,6 @@ form textarea:focus {
 .btn-primary:hover {
     background-color: #8b588b !important;
 }
-
 
 /* -------------------------------------------
    FOOTER
@@ -129,58 +153,20 @@ footer {
     font-size: 0.9rem;
 }
 
-/* Small muted footer text */
 footer small,
 footer .text-muted {
     color: #4b2e5e !important;
 }
 
-
 /* -------------------------------------------
-   RESPONSIVE DESIGN
+   RESPONSIVE
 ------------------------------------------- */
 @media (max-width: 768px) {
-    .web-content {
+    .main-content .web-content {
         padding: 15px;
     }
 
     .navbar .navbar-brand span {
         font-size: 1rem;
-    }
-}
-
-/* Sidebar základ */
-.sidebar {
-    min-height: calc(100vh - 56px); /* celé okno mínus výška topbaru */
-    padding-top: 1rem;
-    border-right: 1px solid #e0dae0;
-    background-color: #fdf7fa!important ; /* jemná ružová #fdf7fa  siva #e0dae0*/
-}
-
-.sidebar-nav .nav-link {
-    color: #4b2e5e;
-    padding: 0.4rem 1.25rem;
-    border-radius: 999px;
-    margin: 0.15rem 0.5rem;
-    font-weight: 500;
-}
-
-.sidebar-nav .nav-link:hover {
-    background-color: #f2c7d8;
-    color: #311b3f;
-}
-
-/* Hlavný obsah – nech má pekné odsadenie a kartičku */
-.main-content .web-content {
-    background: #ffffff;
-    padding: 25px;
-    border-radius: 10px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-}
-
-/* Trochu menšie odsadenie na mobiloch */
-@media (max-width: 768px) {
-    .main-content .web-content {
-        padding: 15px;
     }
 }

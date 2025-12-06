@@ -24,12 +24,11 @@
             required
             value="<?= htmlspecialchars($obdobie->getNazov() ?? '') ?>"
         >
-        <?php if (isset($errors['nazov'])) { ?>
-            <div class="invalid-feedback">
-                <?= htmlspecialchars($errors['nazov']) ?>
-            </div>
-        <?php } ?>
+        <div class="invalid-feedback">
+            <?= isset($errors['nazov']) ? htmlspecialchars($errors['nazov']) : '' ?>
+        </div>
     </div>
+
 
     <!-- DÁTUM OD + DÁTUM DO -->
     <div class="row">
@@ -45,12 +44,11 @@
                 required
                 value="<?= htmlspecialchars($obdobie->getDatumOd() ?? '') ?>"
             >
-            <?php if (isset($errors['datum_od'])) { ?>
-                <div class="invalid-feedback">
-                    <?= htmlspecialchars($errors['datum_od']) ?>
-                </div>
-            <?php } ?>
+            <div class="invalid-feedback">
+                <?= isset($errors['datum_od']) ? htmlspecialchars($errors['datum_od']) : '' ?>
+            </div>
         </div>
+
 
         <div class="mb-3 col-md-6">
             <label for="datum_do" class="form-label">
@@ -64,12 +62,11 @@
                 required
                 value="<?= htmlspecialchars($obdobie->getDatumDo() ?? '') ?>"
             >
-            <?php if (isset($errors['datum_do'])) { ?>
-                <div class="invalid-feedback">
-                    <?= htmlspecialchars($errors['datum_do']) ?>
-                </div>
-            <?php } ?>
+            <div class="invalid-feedback">
+                <?= isset($errors['datum_do']) ? htmlspecialchars($errors['datum_do']) : '' ?>
+            </div>
         </div>
+
     </div>
 
     <!-- POPIS -->

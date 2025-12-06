@@ -61,7 +61,7 @@ class ObdobieController extends BaseController
 
             if (empty($errors)) {
                 $obdobie->save();
-                return $this->index($request);
+                return $this->redirect($this->url('obdobie.index'));
             }
         }
 
