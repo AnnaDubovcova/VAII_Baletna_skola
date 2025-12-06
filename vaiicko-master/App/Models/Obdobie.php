@@ -15,6 +15,11 @@ class Obdobie extends Model
 
     // Ak je tabuľka pomenovaná inak, než by framework čakal (napr. nie "obdobies"),
     // takto mu povieme správny názov:
+
+    protected static function getPkColumnName(): string
+    {
+        return 'id_obdobie';
+    }
     public static function getTableName(): string
     {
         return 'obdobie';

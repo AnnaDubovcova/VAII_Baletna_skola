@@ -34,7 +34,7 @@
                     <td><?= htmlspecialchars($obdobie->getDatumDo()) ?></td>
                     <td><?= nl2br(htmlspecialchars($obdobie->getPopis() ?? '')) ?></td>
                     <td class="text-end">
-                        <a href="<?= $link->url('obdobie.edit', ['id' => $obdobie->getId()]) ?>"
+                        <a href="<?= $link->url('obdobie.edit', ['id_obdobie' => $obdobie->getId()]) ?>"
                            class="btn btn-sm btn-outline-secondary">
                             Upraviť
                         </a>
@@ -42,7 +42,7 @@
                         <form action="<?= $link->url('obdobie.delete') ?>" method="post"
                               class="d-inline-block"
                               onsubmit="return confirm('Naozaj chceš zmazať toto obdobie?');">
-                            <input type="hidden" name="id" value="<?= $obdobie->getId() ?>">
+                            <input type="hidden" name="id_obdobie" value="<?= $obdobie->getId() ?>">
                             <button type="submit" class="btn btn-sm btn-outline-danger">
                                 Zmazať
                             </button>

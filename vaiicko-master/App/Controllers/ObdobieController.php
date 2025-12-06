@@ -43,8 +43,8 @@ class ObdobieController extends BaseController
 
     public function edit(Request $request): Response
     {
-        $id = (int)$request->getValue('id');
-        $obdobie = Obdobie::getOne($id);
+        $id_obdobie = (int)$request->value('id_obdobie');
+        $obdobie = Obdobie::getOne($id_obdobie);
 
         if ($obdobie === null) {
             // podľa toho, ako riešiš chyby – jednoduchá verzia:
@@ -71,11 +71,12 @@ class ObdobieController extends BaseController
 
     public function delete(Request $request): Response
     {
-        $id = (int)$request->getValue('id');
-        $obdobie = Obdobie::getOne($id);
-
+        $id_obdobie = (int)$request->value('id_obdobie');
+        $obdobie = Obdobie::getOne($id_obdobie);
         if ($obdobie !== null) {
             $obdobie->delete();
+        } else {
+            throw new \Exception('Obdobie nenájdené.');
         }
 
         return $this->redirect('obdobie.index');
