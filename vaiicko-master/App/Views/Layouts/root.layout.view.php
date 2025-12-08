@@ -95,8 +95,9 @@
     </nav>
 </header>
 
-<div class="container-fluid">
-    <div class="row flex-nowrap">
+<div class="container-fluid main-shell">
+    <div class="row">
+
 
         <!-- Ľavý sidebar -->
         <nav id="sidebarMenu"
@@ -124,7 +125,7 @@
         </nav>
 
         <!-- Hlavný obsah -->
-        <main class="col py-4 main-content">
+        <main class="col-12 col-md-9 col-lg-10 py-4 main-content">
             <div class="container-fluid">
                 <div class="web-content">
                     <?= $contentHTML ?>

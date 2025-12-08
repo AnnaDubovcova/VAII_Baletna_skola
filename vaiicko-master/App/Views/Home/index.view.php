@@ -3,16 +3,17 @@
 /** @var \Framework\Support\LinkGenerator $link */
 ?>
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col mt-5">
-            <div class="text-center">
-                <h2>Baletná škola Pointe</h2>
-                <p>
-                    Vitajte na stránke našej baletnej školy!<br>
-                </p>
-                <img src="<?= $link->asset('images/pointe_shoes.png') ?>" alt="Logo baletnej skoly">
-            </div>
-        </div>
-    </div>
+<div class="home-hero text-center mt-4">
+    <h2 class="mb-3">Baletná škola Pointe</h2>
+
+    <p class="mb-4">
+        Vitajte na stránke našej baletnej školy!
+    </p>
+
+    <img
+            src="<?= $link->asset('images/pointe_shoes.png') ?>"
+            alt="Logo baletnej školy"
+            class="home-hero-image"
+    >
 </div>
+

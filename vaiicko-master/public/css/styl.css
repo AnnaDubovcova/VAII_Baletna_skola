@@ -1,10 +1,25 @@
 /* -------------------------------------------
    GLOBAL
 ------------------------------------------- */
+html,
+body {
+    height: 100%;
+}
+
 body {
     background-color: #fdf7fa; /* soft light pink */
     font-family: "Segoe UI", Roboto, Arial, sans-serif;
     color: #333;
+
+    /* sticky footer layout */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* hl. časť stránky medzi headerom a footerom */
+.main-shell {
+    flex: 1 0 auto;
 }
 
 /* Ak chceš – ale používaš hlavne .container-fluid,
@@ -44,7 +59,7 @@ body {
    SIDEBAR
 ------------------------------------------- */
 .sidebar {
-    min-height: calc(100vh - 56px); /* celé okno mínus výška topbaru */
+    /* min-height: calc(100vh - 56px);  <-- toto už netreba, robí zbytočný scroll */
     padding-top: 1rem;
     border-right: 1px solid #e0dae0;
     background-color: #fdf7fa !important;
@@ -151,6 +166,9 @@ footer {
     color: #4b2e5e;
     margin-top: 30px;
     font-size: 0.9rem;
+
+    /* sticky footer – footer sa nesťahuje, ostáva naspodku */
+    flex-shrink: 0;
 }
 
 footer small,
@@ -168,5 +186,31 @@ footer .text-muted {
 
     .navbar .navbar-brand span {
         font-size: 1rem;
+    }
+}
+
+/* -------------------------------------------
+   HOME – ÚVODNÝ BLOK A OBRÁZOK
+------------------------------------------- */
+.home-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;   /* centrovanie obsahu vnútri bieleho bloku */
+    justify-content: center;
+}
+
+/* Obrázok na úvodnej stránke */
+.home-hero-image {
+    max-width: 260px;      /* pevný max. rozumný rozmer */
+    width: 80%;            /* na menších displejoch sa prispôsobí */
+    height: auto;
+    display: block;
+    margin: 0 auto;        /* horizontálne centrovanie pre istotu */
+}
+
+/* Na väčších obrazovkách ho môžeš trochu zväčšiť */
+@media (min-width: 768px) {
+    .home-hero-image {
+        max-width: 320px;
     }
 }
