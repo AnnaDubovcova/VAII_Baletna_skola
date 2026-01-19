@@ -18,8 +18,8 @@ $view->setLayout('auth');
                     </div>
                     <form class="form-signin" method="post" action="<?= $link->url("login") ?>">
                         <div class="form-label-group mb-3">
-                            <label for="username" class="form-label">Username</label>
-                            <input name="username" type="text" id="username" class="form-control" placeholder="Username"
+                            <label for="email" class="form-label">Email</label>
+                            <input name="email" type="text" id="email" class="form-control" placeholder="email"
                                    required autofocus>
                         </div>
 
