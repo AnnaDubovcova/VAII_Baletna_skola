@@ -119,6 +119,12 @@
                     <li class="nav-item">
                         <a class="nav-link" href="<?= $link->url('skupina.index') ?>">Skupiny</a>
                     </li>
+                    <?php if ($this->user->isLoggedIn() && !$this->user->isAdmin()): ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="<?= $link->url('osoba.index') ?>">Moje osoby</a>
+                        </li>
+                    <?php endif; ?>
+
                     <!-- neskôr môžeš pridať ďalšie sekcie -->
                 </ul>
             </div>
