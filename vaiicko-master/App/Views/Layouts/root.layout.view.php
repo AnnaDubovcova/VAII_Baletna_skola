@@ -107,26 +107,19 @@
                     <li class="nav-item">
                         <a class="nav-link" href="<?= $link->url('home.index') ?>">Domov</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="<?= $link->url('obdobie.index') ?>">Obdobia</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="<?= $link->url('kurz.index') ?>">Kurzy</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="<?= $link->url('typKurzu.index') ?>">Typy kurzov</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="<?= $link->url('skupina.index') ?>">Skupiny</a>
-                    </li>
-                    <?php if ($this->user->isLoggedIn() && !$this->user->isAdmin()): ?>
-                        <li class="nav-item">
-                            <a class="nav-link" href="<?= $link->url('osoba.index') ?>">Moje osoby</a>
-                        </li>
+
+                    <?php if ($user->isLoggedIn() && $user->isAdmin()): ?>
+                        <li class="nav-item"><a class="nav-link" href="<?= $link->url('obdobie.index') ?>">Obdobia</a></li>
+                        <li class="nav-item"><a class="nav-link" href="<?= $link->url('kurz.index') ?>">Kurzy</a></li>
+                        <li class="nav-item"><a class="nav-link" href="<?= $link->url('typKurzu.index') ?>">Typy kurzov</a></li>
+                        <li class="nav-item"><a class="nav-link" href="<?= $link->url('skupina.index') ?>">Skupiny</a></li>
                     <?php endif; ?>
 
-                    <!-- neskôr môžeš pridať ďalšie sekcie -->
+                    <?php if ($user->isLoggedIn() && !$user->isAdmin()): ?>
+                        <li class="nav-item"><a class="nav-link" href="<?= $link->url('osoba.index') ?>">Moje osoby</a></li>
+                    <?php endif; ?>
                 </ul>
+
             </div>
         </nav>
 

@@ -31,7 +31,7 @@
     </div>
 <?php } ?>
 
-<form method="post" novalidate>
+<form method="post" id="skupina-form" novalidate>
 
     <!-- NÁZOV -->
     <div class="mb-3">

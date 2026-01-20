@@ -10,7 +10,7 @@ use Framework\Http\Responses\Response;
 
 
 
-class ObdobieController extends BaseController
+class ObdobieController extends AdminController
 {
     public function index(Request $request): Response
     {

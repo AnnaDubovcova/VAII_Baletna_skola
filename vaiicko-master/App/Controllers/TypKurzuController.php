@@ -7,7 +7,7 @@ use Framework\Core\BaseController;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
 
-class TypKurzuController extends BaseController
+class TypKurzuController extends AdminController
 {
 
 

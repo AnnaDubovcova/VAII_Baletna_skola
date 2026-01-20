@@ -9,18 +9,18 @@
 <div class="container">
     <div class="d-flex justify-content-between align-items-center my-4">
         <h2>Moje osoby</h2>
-        <a class="btn btn-primary" href="<?= $link->url('osoba.create') ?>">Pridat osobu</a>
+        <a class="btn btn-primary" href="<?= $link->url('osoba.create') ?>">Pridať osobu</a>
     </div>
 
     <?php if (empty($osoby)): ?>
-        <div class="alert alert-info">Zatial nemate ziadne osoby.</div>
+        <div class="alert alert-info">Zatiaľ nemáte žiadne osoby.</div>
     <?php else: ?>
         <table class="table table-striped">
             <thead>
             <tr>
                 <th>Meno</th>
                 <th>Priezvisko</th>
-                <th>Datum narodenia</th>
+                <th>Dátum narodenia</th>
                 <th>Kontakt</th>
                 <th class="text-end">Akcie</th>
             </tr>
@@ -40,12 +40,16 @@
                         ?>
                     </td>
                     <td class="text-end">
+                        <a class="btn btn-sm btn-outline-primary"
+                           href="<?= $link->url('osoba.show', ['id_osoba' => $o->getId()]) ?>">Detail</a>
+
+
                         <a class="btn btn-sm btn-outline-secondary"
-                           href="<?= $link->url('osoba.edit', ['id_osoba' => $o->getId()]) ?>">Upravit</a>
+                           href="<?= $link->url('osoba.edit', ['id_osoba' => $o->getId()]) ?>">Upraviť</a>
 
                         <a class="btn btn-sm btn-outline-danger"
                            href="<?= $link->url('osoba.delete', ['id_osoba' => $o->getId()]) ?>"
-                           onclick="return confirm('Naozaj chcete zmazat tuto osobu?');">Zmazat</a>
+                           onclick="return confirm('Naozaj chcete zmazat tuto osobu?');">Zmazať</a>
                     </td>
                 </tr>
             <?php endforeach; ?>

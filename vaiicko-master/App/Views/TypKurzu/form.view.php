@@ -12,7 +12,7 @@
     <?= $typ_kurzu->getId() ? 'Upraviť typ kurzu' : 'Pridať nový typ kurzu' ?>
 </h1>
 
-<form method="post" novalidate>
+<form method="post" id="typKurzu-form" novalidate>
 
     <!-- Nazov -->
     <div class="mb-3">

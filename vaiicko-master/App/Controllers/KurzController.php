@@ -9,7 +9,7 @@ use Framework\Core\BaseController;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
 
-class KurzController extends BaseController
+class KurzController extends AdminController
 {
     public function index(Request $request): Response
     {

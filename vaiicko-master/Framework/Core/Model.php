@@ -218,9 +218,16 @@ abstract class Model implements \JsonSerializable
             }
             // Insert new record
             if ($this->_dbId === null) {
+
+                //nech created_at doplni DB
+                if (array_key_exists('created_at', $data)) {
+                    unset($data['created_at']);
+                }
+
                 $arrColumns = array_map(fn($item) => (':' . $item), array_keys($data));
                 $columns = '`' . implode('`,`', array_keys($data)) . "`";
                 $params = implode(',', $arrColumns);
+
                 $sql = "INSERT INTO `" . static::getTableName() . "` ($columns) VALUES ($params)";
                 $stmt = Connection::getInstance()->prepare($sql);
                 $stmt->execute($data);

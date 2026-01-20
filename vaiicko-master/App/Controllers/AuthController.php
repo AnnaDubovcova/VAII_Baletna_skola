@@ -49,13 +49,15 @@ class AuthController extends BaseController
         if ($request->hasValue('submit')) {
             $logged = $this->app->getAuthenticator()->login($request->value('email'), $request->value('password'));
             if ($logged) {
-                // Admin ide do admin casti, bezny user do svojho dashboardu.
-                if ($this->user->isAdmin()) {
+                $currentUser = $this->app->getAuthenticator()->getUser();
+
+                if ($currentUser->isAdmin()) {
                     return $this->redirect($this->url('admin.index'));
                 }
 
                 return $this->redirect($this->url('osoba.index'));
             }
+
 
         }
 

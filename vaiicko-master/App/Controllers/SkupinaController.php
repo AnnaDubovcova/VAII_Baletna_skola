@@ -8,7 +8,7 @@ use Framework\Core\BaseController;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
 
-class SkupinaController extends BaseController
+class SkupinaController extends AdminController
 {
     public function index(Request $request): Response
     {

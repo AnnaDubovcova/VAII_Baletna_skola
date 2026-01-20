@@ -44,7 +44,7 @@
     </div>
 <?php } ?>
 
-<form method="post" novalidate>
+<form method="post" id="kurz-form" novalidate>
 
     <div class="mb-3">
         <label for="nazov" class="form-label">Názov <span class="text-danger">*</span></label>

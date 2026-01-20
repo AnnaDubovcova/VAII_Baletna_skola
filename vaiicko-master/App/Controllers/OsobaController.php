@@ -11,9 +11,15 @@ class OsobaController extends BaseController
 {
     public function authorize(Request $request, string $action): bool
     {
-        // Do casti "Moje osoby" pustime iba prihlaseneho pouzivatela.
-        return $this->user->isLoggedIn()&& !$this->user->isAdmin();
+        if (!$this->user->isLoggedIn()) return false;
+
+        if ($this->user->isAdmin()) {
+            return in_array($action, ['show'], true); // admin len show
+        }
+
+        return in_array($action, ['index','create','edit','delete','show'], true);
     }
+
 
     public function index(Request $request): Response
     {
@@ -102,6 +108,32 @@ class OsobaController extends BaseController
         $osoba->delete();
         return $this->redirect($this->url('osoba.index'));
     }
+
+    public function show(Request $request): Response
+    {
+        $id_osoba = (int)$request->value('id_osoba');
+        $osoba = Osoba::getOne($id_osoba);
+
+        if ($osoba === null) {
+            throw new \Exception('Osoba nebola najdena.');
+        }
+
+        // Overime opravnenia na zobrazenie osoby - len admin alebo vlastnik.
+        if (!$this->user->isAdmin() &&
+            $osoba->getIdPouzivatel() !== $this->user->getIdPouzivatel()) {
+            throw new \Exception('Nemate opravnenie zobrazit tuto osobu.');
+        }
+
+
+        $canEdit = !$this->user->isAdmin();
+
+        return $this->html([
+            'osoba' => $osoba,
+            'canEdit' => $canEdit,
+        ]);
+
+    }
+
 
     private function fillAndValidate(Request $request, Osoba $osoba, array &$errors): void
     {
