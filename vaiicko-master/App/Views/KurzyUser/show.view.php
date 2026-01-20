@@ -33,17 +33,15 @@
 
         <?php if ($stav === null): ?>
             <a class="btn btn-primary"
-               href="<?= $link->url('prihlaska.create', ['id_kurz' => $kurz->getId()]) ?>">
-                Prihlásiť
+               href="<?= $link->url('prihlaska.create', ['id_kurz' => $kurz->getId()]) ?>">Prihlásiť
             </a>
         <?php elseif ($stav === 'zrusena'): ?>
             <a class="btn btn-primary"
                href="<?= $link->url('prihlaska.create', ['id_kurz' => $kurz->getId()]) ?>"
-               onclick="return confirm('Chcete podať prihlášku znova?');"
-                Prihlásiť znova
+               onclick="return confirm('Chcete podať prihlášku znova?');">Prihlásiť znova
             </a>
         <?php else: ?>
-            <span class="badge bg-secondary">Stav prihlášky: <?= htmlspecialchars($stav) ?></span>
+            <span class="badge bg-secondary">Stav prihlášky:<?= htmlspecialchars($stav) ?></span>
         <?php endif; ?>
     </div>
 </div>

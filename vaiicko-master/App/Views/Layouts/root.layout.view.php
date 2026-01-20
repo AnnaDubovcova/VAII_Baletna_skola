@@ -113,6 +113,8 @@
                         <li class="nav-item"><a class="nav-link" href="<?= $link->url('kurz.index') ?>">Kurzy</a></li>
                         <li class="nav-item"><a class="nav-link" href="<?= $link->url('typKurzu.index') ?>">Typy kurzov</a></li>
                         <li class="nav-item"><a class="nav-link" href="<?= $link->url('skupina.index') ?>">Skupiny</a></li>
+                        <li class="nav-item"><a class="nav-link" href="<?= $link->url('adminPrihlaska.index') ?>">Prihlášky</a></li>
+
                     <?php endif; ?>
 
                     <?php if ($user->isLoggedIn() && !$user->isAdmin()): ?>

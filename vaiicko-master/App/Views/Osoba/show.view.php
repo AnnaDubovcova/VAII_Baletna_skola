@@ -1,6 +1,8 @@
 <?php
 /** @var \App\Models\Osoba $osoba */
 /** @var \Framework\Support\LinkGenerator $link */
+/** @var \Framework\Auth\AppUser $user */
+
 ?>
 
 <h1 class="page-title">Detail osoby</h1>
@@ -66,9 +68,24 @@
 </div>
 
 <div class="d-flex justify-content-between">
-    <a href="<?= $link->url('osoba.index') ?>" class="btn btn-outline-secondary">
-        Späť na zoznam
-    </a>
+    <?php if (!empty($returnTo)): ?>
+        <a class="btn btn-sm btn-outline-secondary" href="<?= htmlspecialchars($returnTo) ?>">
+            Späť
+        </a>
+    <?php else: ?>
+        <?php if ($user->isAdmin()): ?>
+            <a class="btn btn-sm btn-outline-secondary" href="<?= $link->url('adminPrihlaska.index') ?>">
+                Späť na prihlášky
+            </a>
+        <?php else: ?>
+            <a class="btn btn-sm btn-outline-secondary" href="<?= $link->url('osoba.index') ?>">
+                Späť na moje osoby
+            </a>
+        <?php endif; ?>
+    <?php endif; ?>
+
+
+
 
     <div class="d-flex gap-2">
         <?php if (!empty($canEdit)): ?>

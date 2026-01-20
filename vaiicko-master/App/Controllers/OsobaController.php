@@ -133,10 +133,16 @@ class OsobaController extends BaseController
 
         $canEdit = !$this->user->isAdmin();
 
+        $returnTo = (string)$request->value('return_to');
+
+
         return $this->html([
             'osoba' => $osoba,
             'canEdit' => $canEdit,
+            'user' => $this->user,
+            'returnTo' => $returnTo,
         ]);
+
 
     }
 
