@@ -9,6 +9,7 @@ use Framework\Http\Responses\JsonResponse;
 use Framework\Http\Responses\RedirectResponse;
 use Framework\Http\Responses\Response;
 use Framework\Http\Responses\ViewResponse;
+use Framework\Http\Session;
 
 /**
  * Class ControllerBase
@@ -196,4 +197,12 @@ abstract class BaseController
     ): string {
         return $this->app->getLinkGenerator()->url($destination, $parameters, $absolute, $appendParameters);
     }
+
+
+    protected function getActiveOsobaId(): ?int
+    {
+        $session = new Session();
+        return $session->get('active_osoba_id');
+    }
+
 }

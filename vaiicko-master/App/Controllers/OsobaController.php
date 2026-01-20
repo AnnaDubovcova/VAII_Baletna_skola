@@ -6,6 +6,7 @@ use App\Models\Osoba;
 use Framework\Core\BaseController;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
+use Framework\Http\Session;
 
 class OsobaController extends BaseController
 {
@@ -17,7 +18,7 @@ class OsobaController extends BaseController
             return in_array($action, ['show'], true); // admin len show
         }
 
-        return in_array($action, ['index','create','edit','delete','show'], true);
+        return in_array($action, ['index','create','edit','delete','show', 'select'], true);
     }
 
 
@@ -31,10 +32,15 @@ class OsobaController extends BaseController
             "created_at DESC"
         );
 
+        $session = new Session();
+        $activeOsobaId = $session->get('active_osoba_id');
+
         return $this->html([
             'osoby' => $osoby,
+            'activeOsobaId' => $activeOsobaId,
         ]);
     }
+
 
     public function create(Request $request): Response
     {
@@ -133,6 +139,27 @@ class OsobaController extends BaseController
         ]);
 
     }
+
+
+    public function select(Request $request): Response
+    {
+        $id_osoba = (int)$request->value('id_osoba');
+        $osoba = Osoba::getOne($id_osoba);
+
+        if ($osoba === null) {
+            throw new \Exception('Osoba nebola najdena.');
+        }
+
+        if ($osoba->getIdPouzivatel() !== $this->user->getIdPouzivatel()) {
+            throw new \Exception('Nemate opravnenie vybrat tuto osobu.');
+        }
+
+        $session = new Session();
+        $session->set('active_osoba_id', $id_osoba);
+
+        return $this->redirect($this->url('osoba.index'));
+    }
+
 
 
     private function fillAndValidate(Request $request, Osoba $osoba, array &$errors): void

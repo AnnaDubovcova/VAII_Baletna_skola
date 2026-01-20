@@ -1,9 +1,7 @@
 <?php
 /** @var \Framework\Support\LinkGenerator $link */
-/** @var \Framework\Support\View $view */
 /** @var \App\Models\Osoba[] $osoby */
-
-//$view->setLayout('root');
+/** @var int|null $activeOsobaId */
 ?>
 
 <div class="container">
@@ -26,11 +24,21 @@
             </tr>
             </thead>
             <tbody>
+
             <?php foreach ($osoby as $o): ?>
                 <tr>
-                    <td><?= htmlspecialchars((string)$o->getMeno()) ?></td>
+
+                    <td>
+                        <?= htmlspecialchars((string)$o->getMeno()) ?>
+
+                        <?php if (!empty($activeOsobaId) && (int)$activeOsobaId === (int)$o->getId()): ?>
+                            <span class="badge bg-primary ms-2">Aktívna</span>
+                        <?php endif; ?>
+                    </td>
+
                     <td><?= htmlspecialchars((string)$o->getPriezvisko()) ?></td>
                     <td><?= htmlspecialchars((string)$o->getDatumNarodenia()) ?></td>
+
                     <td>
                         <?php
                         $kontakt = [];
@@ -39,20 +47,37 @@
                         echo htmlspecialchars(implode(', ', $kontakt));
                         ?>
                     </td>
-                    <td class="text-end">
-                        <a class="btn btn-sm btn-outline-primary"
-                           href="<?= $link->url('osoba.show', ['id_osoba' => $o->getId()]) ?>">Detail</a>
 
+                    <td class="text-end">
+
+                        <?php if (!empty($activeOsobaId) && (int)$activeOsobaId === (int)$o->getId()): ?>
+                            <span class="btn btn-sm btn-outline-primary disabled">Aktívna</span>
+                        <?php else: ?>
+                            <a class="btn btn-sm btn-success"
+                               href="<?= $link->url('osoba.select', ['id_osoba' => $o->getId()]) ?>">
+                                Použiť
+                            </a>
+                        <?php endif; ?>
+
+                        <a class="btn btn-sm btn-outline-primary"
+                           href="<?= $link->url('osoba.show', ['id_osoba' => $o->getId()]) ?>">
+                            Detail
+                        </a>
 
                         <a class="btn btn-sm btn-outline-secondary"
-                           href="<?= $link->url('osoba.edit', ['id_osoba' => $o->getId()]) ?>">Upraviť</a>
+                           href="<?= $link->url('osoba.edit', ['id_osoba' => $o->getId()]) ?>">
+                            Upraviť
+                        </a>
 
                         <a class="btn btn-sm btn-outline-danger"
                            href="<?= $link->url('osoba.delete', ['id_osoba' => $o->getId()]) ?>"
-                           onclick="return confirm('Naozaj chcete zmazat tuto osobu?');">Zmazať</a>
+                           onclick="return confirm('Naozaj chcete zmazať túto osobu?');">
+                            Zmazať
+                        </a>
                     </td>
                 </tr>
             <?php endforeach; ?>
+
             </tbody>
         </table>
     <?php endif; ?>
