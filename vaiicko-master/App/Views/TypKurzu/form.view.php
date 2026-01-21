@@ -6,6 +6,8 @@
 /** @var array $errors */
 /** @var string $formAction */
 /** @var \Framework\Support\LinkGenerator $link */
+/** @var string|null $error */
+
 ?>
 
 <h1 class="page-title">

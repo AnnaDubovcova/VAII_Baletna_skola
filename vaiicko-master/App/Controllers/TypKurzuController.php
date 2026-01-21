@@ -15,9 +15,15 @@ class TypKurzuController extends AdminController
     {
 
         $typy_kurzu = TypKurzu::getAll();
+
+        $error = (string)$request->value('error');
+        if ($error === '') $error = null;
+
         return $this->html([
             'typy_kurzu' => $typy_kurzu,
+            'error' => $error,
         ]);
+
     }
 
     public function create(Request $request): Response
@@ -75,16 +81,45 @@ class TypKurzuController extends AdminController
     public function delete(Request $request): Response
     {
         $id_typ_kurzu = (int)$request->value('id_typ_kurzu');
-        $typ_kurzu = TypKurzu::getOne($id_typ_kurzu);
+        $typ = TypKurzu::getOne($id_typ_kurzu);
 
-        if ($typ_kurzu !== null) {
-            $typ_kurzu->delete();
-        } else {
-            throw new \Exception('Typ kurzu nenajdeny.');
+        if ($typ === null) {
+            throw new \Exception('Typ kurzu nenájdený.');
         }
 
-        return $this->redirect($this->url('typKurzu.index'));
+        try {
+            $typ->delete();
+            return $this->redirect($this->url('typKurzu.index'));
+        } catch (\Throwable $e) {
+
+            // Zisti SQLSTATE kód (niekedy je v previous)
+            $prev = $e->getPrevious();
+            $sqlState = null;
+
+            if ($e instanceof \PDOException) {
+                $sqlState = $e->getCode();
+            } elseif ($prev instanceof \PDOException) {
+                $sqlState = $prev->getCode();
+            }
+
+            $isFkViolation =
+                ($sqlState === '23000') ||
+                str_contains((string)$e->getMessage(), 'SQLSTATE[23000]') ||
+                ($prev && str_contains((string)$prev->getMessage(), 'SQLSTATE[23000]'));
+
+            if ($isFkViolation) {
+                return $this->redirect($this->url('typKurzu.index', [
+                    'error' => 'Typ kurzu nie je možné zmazať, pretože existujú kurzy, ktoré naň odkazujú.'
+                ]));
+            }
+
+
+            // iné chyby nech idú ďalej
+            throw $e;
+        }
     }
+
+
 
     private function fillAndValidate(Request $request, TypKurzu $typ_kurzu, array &$errors): void
     {

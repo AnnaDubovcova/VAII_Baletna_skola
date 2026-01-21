@@ -16,8 +16,12 @@ class ObdobieController extends AdminController
     {
         $obdobia = Obdobie::getAll();
 
+        $error = (string)$request->value('error');
+        if ($error === '') $error = null;
+
         return $this->html([
             'obdobia' => $obdobia,
+            'error' => $error,
         ]);
     }
 
@@ -76,15 +80,45 @@ class ObdobieController extends AdminController
     {
         $id_obdobie = (int)$request->value('id_obdobie');
         $obdobie = Obdobie::getOne($id_obdobie);
-        if ($obdobie !== null) {
-            $obdobie->delete();
-        } else {
+
+        if ($obdobie === null) {
             throw new \Exception('Obdobie nenájdené.');
         }
 
-        return $this->redirect($this->url('obdobie.index'));
+        try {
+            $obdobie->delete();
+            return $this->redirect($this->url('obdobie.index'));
+        } catch (\Throwable $e) {
 
+            $prev = $e->getPrevious();
+            $sqlState = null;
+
+            if ($e instanceof \PDOException) {
+                $sqlState = $e->getCode();
+            } elseif ($prev instanceof \PDOException) {
+                $sqlState = $prev->getCode();
+            }
+
+            $isFkViolation =
+                ($sqlState === '23000') ||
+                str_contains((string)$e->getMessage(), 'SQLSTATE[23000]') ||
+                ($prev && str_contains((string)$prev->getMessage(), 'SQLSTATE[23000]'));
+
+            if ($isFkViolation) {
+                $obdobia = Obdobie::getAll('1=1', [], 'datum_od DESC');
+
+                if ($isFkViolation) {
+                    return $this->redirect($this->url('obdobie.index', [
+                        'error' => 'Obdobie nie je možné zmazať, pretože existujú kurzy, ktoré naň odkazujú.'
+                    ]));
+                }
+            }
+
+            throw $e;
+        }
     }
+
+
 
     /**
      * Spoločné naplnenie modelu + server-side validácia

@@ -1,7 +1,16 @@
 <?php
 /** @var \App\Models\Obdobie[] $obdobia */
 /** @var \Framework\Support\LinkGenerator $link */
+/** @var string|null $error */
+
 ?>
+
+<?php if (!empty($error)): ?>
+    <div class="alert alert-warning">
+        <?= htmlspecialchars((string)$error) ?>
+    </div>
+<?php endif; ?>
+
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1>Obdobia kurzov</h1>
