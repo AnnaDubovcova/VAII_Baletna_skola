@@ -122,6 +122,30 @@ table.table tbody tr:hover {
     border-radius: 20px;
 }
 
+/* Tabuľky – rozumné správanie pri dlhých textoch */
+.table {
+    width: 100%;
+}
+
+.table td, .table th {
+    vertical-align: middle;
+}
+
+/* Nech sa tabuľka nerozťahuje do šírky kvôli dlhému slovu */
+.table td {
+    word-break: break-word;      /* láme aj dlhé reťazce bez medzier */
+    overflow-wrap: anywhere;     /* moderné prehliadače */
+}
+
+/* Voliteľné: orezanie názvu na 1 riadok s troma bodkami */
+.table .cell-truncate {
+    max-width: 360px;            /* uprav podľa potreby */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
 /* -------------------------------------------
    FORMS
 ------------------------------------------- */

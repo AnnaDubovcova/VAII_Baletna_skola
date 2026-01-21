@@ -2,20 +2,21 @@
 /** @var \Framework\Support\LinkGenerator $link */
 /** @var \App\Models\PrihlaskaKurz[] $prihlasky */
 /** @var string $stav */
-/** @var int $idKurz */
-/** @var \App\Models\Kurz[] $kurzy */
+/** @var int $idObdobie */
+/** @var \App\Models\Obdobie[] $obdobia */
 /** @var array<int, \App\Models\Kurz> $kurzById */
 /** @var array<int, \App\Models\Osoba> $osobaById */
 ?>
 
 <h1 class="page-title">Prihlášky (admin)</h1>
 
-<form class="row g-2 mb-3" method="get" action="">
+<form id="admin-prihlaska-filter" class="row g-2 mb-3" method="get" action="">
     <input type="hidden" name="c" value="adminPrihlaska">
     <input type="hidden" name="a" value="index">
+
     <div class="col-12 col-md-4">
         <label class="form-label">Stav</label>
-        <select class="form-select" name="stav">
+        <select id="filter-stav" class="form-select" name="stav">
             <option value="" <?= $stav === '' ? 'selected' : '' ?>>Všetky</option>
             <option value="nova" <?= $stav === 'nova' ? 'selected' : '' ?>>nová</option>
             <option value="schvalena" <?= $stav === 'schvalena' ? 'selected' : '' ?>>schválená</option>
@@ -25,12 +26,12 @@
     </div>
 
     <div class="col-12 col-md-6">
-        <label class="form-label">Kurz</label>
-        <select class="form-select" name="id_kurz">
-            <option value="0" <?= $idKurz === 0 ? 'selected' : '' ?>>Všetky</option>
-            <?php foreach ($kurzy as $k): ?>
-                <option value="<?= (int)$k->getId() ?>" <?= $idKurz === (int)$k->getId() ? 'selected' : '' ?>>
-                    <?= htmlspecialchars((string)$k->getNazov()) ?>
+        <label class="form-label">Obdobie</label>
+        <select id="filter-obdobie" class="form-select" name="id_obdobie">
+            <option value="0" <?= $idObdobie === 0 ? 'selected' : '' ?>>Všetky</option>
+            <?php foreach ($obdobia as $o): ?>
+                <option value="<?= (int)$o->getId() ?>" <?= $idObdobie === (int)$o->getId() ? 'selected' : '' ?>>
+                    <?= htmlspecialchars((string)$o->getNazov()) ?>
                 </option>
             <?php endforeach; ?>
         </select>
@@ -55,7 +56,7 @@
             <th class="text-end">Akcie</th>
         </tr>
         </thead>
-        <tbody>
+        <tbody id="admin-prihlasky-body">
         <?php foreach ($prihlasky as $p): ?>
             <?php
             $pid = (int)$p->getId();
@@ -65,53 +66,56 @@
             $kurz  = $kurzById[$kid] ?? null;
             $stavP = (string)$p->getStav();
             ?>
-            <tr>
+            <tr data-id="<?= $pid ?>">
                 <td><?= $pid ?></td>
                 <td>
-                    <?php if ($osoba): ?>
-                        <?= htmlspecialchars($osoba->getMeno() . ' ' . $osoba->getPriezvisko()) ?>
-                    <?php else: ?>
-                        #<?= $oid ?>
-                    <?php endif; ?>
+                    <?= $osoba
+                            ? htmlspecialchars($osoba->getMeno() . ' ' . $osoba->getPriezvisko())
+                            : ('#' . $oid) ?>
                 </td>
                 <td>
-                    <?php if ($kurz): ?>
-                        <?= htmlspecialchars((string)$kurz->getNazov()) ?>
-                    <?php else: ?>
-                        #<?= $kid ?>
-                    <?php endif; ?>
+                    <?= $kurz
+                            ? htmlspecialchars((string)$kurz->getNazov())
+                            : ('#' . $kid) ?>
                 </td>
                 <td>
-                    <span class="badge bg-secondary"><?= htmlspecialchars($stavP) ?></span>
+                    <span class="badge bg-secondary js-stav"><?= htmlspecialchars($stavP) ?></span>
                 </td>
                 <td><?= htmlspecialchars((string)($p->getCreatedAt() ?? '')) ?></td>
                 <td class="text-end">
                     <a class="btn btn-sm btn-outline-secondary"
                        href="<?= $link->url('adminPrihlaska.show', [
-                           'id' => $pid,
-                           'return_to' => $link->url('adminPrihlaska.index', ['stav' => $stav, 'id_kurz' => $idKurz])
+                               'id' => $pid,
+                               'return_to' => $link->url('adminPrihlaska.index', [
+                                       'stav' => $stav,
+                                       'id_obdobie' => $idObdobie
+                               ])
                        ]) ?>">
-
                         Detail
                     </a>
 
                     <?php if ($stavP === 'nova'): ?>
-                        <a class="btn btn-sm btn-outline-success ms-2"
+                        <a class="btn btn-sm btn-outline-success ms-2 js-approve"
                            href="<?= $link->url('adminPrihlaska.approve', [
-                               'id' => $pid,
-                               'return_to' => $link->url('adminPrihlaska.index', ['stav' => $stav, 'id_kurz' => $idKurz])
-                           ]) ?>"
-
-                           onclick="return confirm('Schváliť prihlášku?');">
+                                   'id' => $pid,
+                                   'ajax' => 1,
+                                   'return_to' => $link->url('adminPrihlaska.index', [
+                                           'stav' => $stav,
+                                           'id_obdobie' => $idObdobie
+                                   ])
+                           ]) ?>">
                             Schváliť
                         </a>
-                        <a class="btn btn-sm btn-outline-danger ms-2"
-                           href="<?= $link->url('adminPrihlaska.reject', [
-                               'id' => $pid,
-                               'return_to' => $link->url('adminPrihlaska.index', ['stav' => $stav, 'id_kurz' => $idKurz])
-                           ]) ?>"
 
-                           onclick="return confirm('Zamietnuť prihlášku?');">
+                        <a class="btn btn-sm btn-outline-danger ms-2 js-reject"
+                           href="<?= $link->url('adminPrihlaska.reject', [
+                                   'id' => $pid,
+                                   'ajax' => 1,
+                                   'return_to' => $link->url('adminPrihlaska.index', [
+                                           'stav' => $stav,
+                                           'id_obdobie' => $idObdobie
+                                   ])
+                           ]) ?>">
                             Zamietnuť
                         </a>
                     <?php endif; ?>

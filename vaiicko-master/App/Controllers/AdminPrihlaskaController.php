@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\Kurz;
+use App\Models\Obdobie;
 use App\Models\Osoba;
 use App\Models\PrihlaskaKurz;
 use Framework\Http\Request;
@@ -13,7 +14,7 @@ class AdminPrihlaskaController extends AdminController
     public function index(Request $request): Response
     {
         $stav = trim((string)$request->value('stav'));
-        $idKurz = (int)$request->value('id_kurz');
+        $idObdobie = (int)$request->value('id_obdobie');
 
         $where = [];
         $params = [];
@@ -22,9 +23,27 @@ class AdminPrihlaskaController extends AdminController
             $where[] = 'stav = :stav';
             $params['stav'] = $stav;
         }
-        if ($idKurz > 0) {
-            $where[] = 'id_kurz = :k';
-            $params['k'] = $idKurz;
+
+        // filter podľa obdobia cez kurzy v období
+        if ($idObdobie > 0) {
+            $kurzyVObdobi = Kurz::getAll('id_obdobie = :o', ['o' => $idObdobie]);
+
+            $ids = [];
+            foreach ($kurzyVObdobi as $kk) {
+                $ids[] = (int)$kk->getId();
+            }
+
+            if (empty($ids)) {
+                $where[] = '1=0';
+            } else {
+                $ph = [];
+                foreach ($ids as $i => $kid) {
+                    $key = 'kid' . $i;
+                    $ph[] = ':' . $key;
+                    $params[$key] = $kid;
+                }
+                $where[] = 'id_kurz IN (' . implode(',', $ph) . ')';
+            }
         }
 
         $cond = empty($where) ? '1=1' : implode(' AND ', $where);
@@ -32,23 +51,63 @@ class AdminPrihlaskaController extends AdminController
         $prihlasky = PrihlaskaKurz::getAll($cond, $params, 'created_at DESC');
 
         // Mapy pre zobrazenie názvov
-        $kurzy = Kurz::getAll('', [], 'nazov ASC');
+        $kurzy = Kurz::getAll('1=1', [], 'nazov ASC');
         $kurzById = [];
         foreach ($kurzy as $k) {
             $kurzById[(int)$k->getId()] = $k;
         }
 
-        $osoby = Osoba::getAll();
+        $osoby = Osoba::getAll('1=1');
         $osobaById = [];
         foreach ($osoby as $o) {
             $osobaById[(int)$o->getId()] = $o;
         }
 
+        // obdobia do filtra
+        $obdobia = Obdobie::getAll('1=1', [], 'datum_od DESC');
+
+        if ((int)$request->value('ajax') === 1) {
+            $rows = [];
+
+            foreach ($prihlasky as $p) {
+                $oid = (int)$p->getIdOsoba();
+                $kid = (int)$p->getIdKurz();
+
+                $osoba = $osobaById[$oid] ?? null;
+                $kurz  = $kurzById[$kid] ?? null;
+
+                $rows[] = [
+                    'id' => (int)$p->getId(),
+                    'stav' => (string)$p->getStav(),
+                    'created_at' => (string)($p->getCreatedAt() ?? ''),
+                    'osoba' => $osoba ? ($osoba->getMeno() . ' ' . $osoba->getPriezvisko()) : ('#' . $oid),
+                    'kurz' => $kurz ? (string)$kurz->getNazov() : ('#' . $kid),
+                    'can_decide' => ((string)$p->getStav() === 'nova'),
+
+                    'url_show' => $this->url('adminPrihlaska.show', [
+                        'id' => (int)$p->getId(),
+                        'return_to' => $this->url('adminPrihlaska.index', [
+                            'stav' => $stav,
+                            'id_obdobie' => $idObdobie
+                        ])
+                    ]),
+
+                    'url_approve' => $this->url('adminPrihlaska.approve', ['id' => (int)$p->getId()]),
+                    'url_reject' => $this->url('adminPrihlaska.reject', ['id' => (int)$p->getId()]),
+                ];
+            }
+
+            return $this->json([
+                'ok' => true,
+                'rows' => $rows,
+            ]);
+        }
+
         return $this->html([
             'prihlasky' => $prihlasky,
             'stav' => $stav,
-            'idKurz' => $idKurz,
-            'kurzy' => $kurzy,
+            'idObdobie' => $idObdobie,
+            'obdobia' => $obdobia,
             'kurzById' => $kurzById,
             'osobaById' => $osobaById,
         ]);
@@ -77,34 +136,24 @@ class AdminPrihlaskaController extends AdminController
             'osoba' => $osoba,
             'returnTo' => $returnTo,
         ]);
-
     }
 
     public function approve(Request $request): Response
     {
-        $id = (int)$request->value('id');
-        $p = PrihlaskaKurz::getOne($id);
-        if ($p === null) {
-            throw new \Exception('Prihláška neexistuje.');
-        }
-
-        // odporúčané: meniť len z "nova"
-        if ($p->getStav() === 'nova') {
-            $p->setStav('schvalena');
-            $p->save();
-        }
-
-        $returnTo = (string)$request->value('return_to');
-        if ($returnTo !== '') {
-            return $this->redirect($returnTo);
-        }
-        return $this->redirect($this->url('adminPrihlaska.index'));
-
-
+        return $this->decide($request, 'schvalena');
     }
 
     public function reject(Request $request): Response
     {
+        return $this->decide($request, 'zamietnuta');
+    }
+
+    private function decide(Request $request, string $newStav): Response
+    {
+        if (!in_array($newStav, ['schvalena', 'zamietnuta'], true)) {
+            throw new \Exception('Neplatný cieľový stav.');
+        }
+
         $id = (int)$request->value('id');
         $p = PrihlaskaKurz::getOne($id);
         if ($p === null) {
@@ -112,15 +161,23 @@ class AdminPrihlaskaController extends AdminController
         }
 
         if ($p->getStav() === 'nova') {
-            $p->setStav('zamietnuta');
+            $p->setStav($newStav);
             $p->save();
+        }
+
+        if ((int)$request->value('ajax') === 1) {
+            return $this->json([
+                'ok' => true,
+                'id' => (int)$p->getId(),
+                'stav' => (string)$p->getStav(),
+            ]);
         }
 
         $returnTo = (string)$request->value('return_to');
         if ($returnTo !== '') {
             return $this->redirect($returnTo);
         }
-        return $this->redirect($this->url('adminPrihlaska.index'));
 
+        return $this->redirect($this->url('adminPrihlaska.index'));
     }
 }

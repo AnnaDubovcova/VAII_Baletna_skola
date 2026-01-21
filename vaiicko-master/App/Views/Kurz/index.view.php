@@ -28,7 +28,10 @@
             <tbody>
             <?php foreach ($kurzy as $kurz) { ?>
                 <tr>
-                    <td><?= htmlspecialchars($kurz->getNazov() ?? '') ?></td>
+                    <td class="cell-truncate" title="<?= htmlspecialchars((string)$kurz->getNazov()) ?>">
+                        <?= htmlspecialchars((string)$kurz->getNazov()) ?>
+                    </td>
+
                     <td>
                         <?php
                         $idTyp = $kurz->getIdTypKurzu();

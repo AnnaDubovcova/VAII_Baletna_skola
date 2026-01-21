@@ -362,5 +362,133 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     })();
 
+    (function () {
+        const form = document.getElementById('admin-prihlaska-filter');
+        const tbody = document.getElementById('admin-prihlasky-body');
+
+        if (!form || !tbody) return;
+
+        function badgeClassFor(stav) {
+            switch (stav) {
+                case 'nova': return 'bg-secondary';
+                case 'schvalena': return 'bg-success';
+                case 'zamietnuta': return 'bg-danger';
+                case 'zrusena': return 'bg-warning';
+                default: return 'bg-secondary';
+            }
+        }
+
+        function escapeHtml(str) {
+            return String(str ?? '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
+        function renderRow(r) {
+            const canDecide = !!r.can_decide;
+
+            return `
+        <tr data-id="${r.id}">
+            <td>${r.id}</td>
+            <td>${escapeHtml(r.osoba)}</td>
+            <td>${escapeHtml(r.kurz)}</td>
+            <td>
+                <span class="badge ${badgeClassFor(r.stav)} js-stav">
+                    ${escapeHtml(r.stav)}
+                </span>
+            </td>
+            <td>${escapeHtml(r.created_at)}</td>
+            <td class="text-end">
+                <a class="btn btn-sm btn-outline-secondary"
+                   href="${r.url_show}">
+                    Detail
+                </a>
+
+                ${canDecide ? `
+                <a class="btn btn-sm btn-outline-success ms-2 js-approve"
+                   href="${r.url_approve}&ajax=1">
+                    Schváliť
+                </a>
+                <a class="btn btn-sm btn-outline-danger ms-2 js-reject"
+                   href="${r.url_reject}&ajax=1">
+                    Zamietnuť
+                </a>
+                ` : ``}
+            </td>
+        </tr>`;
+        }
+
+        async function loadFiltered() {
+            const url = new URL(window.location.href);
+            const fd = new FormData(form);
+
+            url.search = '';
+            for (const [k, v] of fd.entries()) {
+                url.searchParams.set(k, v);
+            }
+            url.searchParams.set('ajax', '1');
+
+            const res = await fetch(url.toString(), {
+                headers: { 'Accept': 'application/json' }
+            });
+
+            const data = await res.json();
+            if (!data.ok) throw new Error('AJAX filter failed');
+
+            tbody.innerHTML = data.rows.map(renderRow).join('');
+        }
+
+        // approve / reject
+        tbody.addEventListener('click', async function (e) {
+            const a = e.target.closest('a.js-approve, a.js-reject');
+            if (!a) return;
+
+            e.preventDefault();
+
+            const isApprove = a.classList.contains('js-approve');
+            const ok = window.confirm(isApprove
+                ? 'Schváliť prihlášku?'
+                : 'Zamietnuť prihlášku?');
+
+            if (!ok) return;
+
+            try {
+                const res = await fetch(a.href, {
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                const data = await res.json();
+                if (!data.ok) throw new Error('AJAX approve/reject failed');
+
+                // vždy znovu načítame tabuľku podľa filtrov
+                await loadFiltered();
+
+            } catch (err) {
+                console.error(err);
+                alert('Nastala chyba pri spracovaní požiadavky.');
+            }
+        });
+
+        // filter change
+        form.addEventListener('change', function () {
+            loadFiltered().catch(err => {
+                console.error(err);
+                form.submit();
+            });
+        });
+
+        // filter submit
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            loadFiltered().catch(err => {
+                console.error(err);
+                form.submit();
+            });
+        });
+
+    })();
 
 });
