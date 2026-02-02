@@ -35,7 +35,7 @@ class SkupinaController extends AdminController
         // Potrebujeme zoznam období na výber vo formulári
         $obdobia = Obdobie::getAll();
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if ($request->isPost()) {
             $this->fillAndValidate($request, $skupina, $errors);
 
             // Ak zatiaľ neexistuje žiadne obdobie, skupinu nie je kam zaradiť
@@ -70,7 +70,7 @@ class SkupinaController extends AdminController
         $errors = [];
         $obdobia = Obdobie::getAll();
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if ($request->isPost()) {
             $this->fillAndValidate($request, $skupina, $errors);
 
             if (empty($obdobia)) {

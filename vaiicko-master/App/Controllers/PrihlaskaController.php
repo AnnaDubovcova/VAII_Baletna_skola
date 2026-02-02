@@ -3,33 +3,20 @@
 namespace App\Controllers;
 
 use App\Models\Kurz;
-use App\Models\Osoba;
 use App\Models\PrihlaskaKurz;
-use Framework\Core\BaseController;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
 
 class PrihlaskaController extends UserBaseController
 {
-
     public function index(Request $request): Response
     {
-
-        /*
-        $prihlasky = PrihlaskaKurz::getAll(
-            "id_osoba = :id",
-            ['id' => $activeOsobaId],
-            "created_at DESC"
-        );
-
-        // (voliteľné) môžeme neskôr doplniť join na kurz a zobraziť názvy
-        return $this->html([
-            'prihlasky' => $prihlasky,
-            'activeOsobaId' => $activeOsobaId,
-        ]);*/
+        // Guard: active osoba must be selected and must belong to the logged-in user
         $activeOsoba = $this->requireActiveOsoba();
+        if ($activeOsoba === null) {
+            return $this->redirect($this->url('osoba.index'));
+        }
         $activeOsobaId = (int)$activeOsoba->getId();
-
 
         $prihlasky = PrihlaskaKurz::getAll(
             'id_osoba = :id',
@@ -37,26 +24,33 @@ class PrihlaskaController extends UserBaseController
             'created_at DESC'
         );
 
-// mapovanie: id_kurz => Kurz
+        // Map: id_kurz => Kurz
         $kurzById = [];
         $kurzIds = [];
+
         foreach ($prihlasky as $p) {
             if ($p->getIdKurz() !== null) {
                 $kurzIds[] = (int)$p->getIdKurz();
             }
         }
+
         $kurzIds = array_values(array_unique($kurzIds));
 
         if (!empty($kurzIds)) {
             $placeholders = [];
             $params = [];
+
             foreach ($kurzIds as $i => $id) {
                 $key = 'k' . $i;
                 $placeholders[] = ':' . $key;
                 $params[$key] = $id;
             }
 
-            $kurzy = Kurz::getAll('id_kurz IN (' . implode(',', $placeholders) . ')', $params);
+            $kurzy = Kurz::getAll(
+                'id_kurz IN (' . implode(',', $placeholders) . ')',
+                $params
+            );
+
             foreach ($kurzy as $k) {
                 $kurzById[(int)$k->getId()] = $k;
             }
@@ -68,19 +62,20 @@ class PrihlaskaController extends UserBaseController
             'activeOsoba' => $activeOsoba,
             'kurzById' => $kurzById,
         ]);
-
     }
 
     public function create(Request $request): Response
     {
         $idKurz = (int)$request->value('id_kurz');
 
-        // kontrola: aktívna osoba musí patriť userovi
+        // Guard: active osoba must be selected and must belong to the logged-in user
         $osoba = $this->requireActiveOsoba();
+        if ($osoba === null) {
+            return $this->redirect($this->url('osoba.index'));
+        }
         $activeOsobaId = (int)$osoba->getId();
 
-
-        // kurz musí existovať a byť otvorený
+        // Course must exist and be open
         $kurz = Kurz::getOne($idKurz);
         if ($kurz === null) {
             throw new \Exception('Kurz nebol nájdený.');
@@ -89,7 +84,7 @@ class PrihlaskaController extends UserBaseController
             throw new \Exception('Prihlasovanie na tento kurz nie je otvorené.');
         }
 
-        // skontrolujeme, či už neexistuje prihláška (kvôli UX, DB to aj tak chráni UNIQUE)
+        // Check if application already exists (UX; DB should also enforce UNIQUE)
         $existing = PrihlaskaKurz::getAll(
             "id_osoba = :o AND id_kurz = :k",
             ['o' => $activeOsobaId, 'k' => $idKurz]
@@ -99,11 +94,11 @@ class PrihlaskaController extends UserBaseController
             /** @var PrihlaskaKurz $ex */
             $ex = $existing[0];
 
-            // ak je zrušená, reaktivujeme
+            // If canceled, reactivate
             if ($ex->getStav() === 'zrusena') {
                 $ex->setStav('nova');
 
-                // aktualizuj snapshot zástupcu podľa aktuálnych údajov v osobe
+                // Update representative snapshot from current osoba data
                 $ex->setZastupcaMeno($osoba->getZastupcaMeno());
                 $ex->setZastupcaPriezvisko($osoba->getZastupcaPriezvisko());
                 $ex->setZastupcaEmail($osoba->getZastupcaEmail());
@@ -115,13 +110,12 @@ class PrihlaskaController extends UserBaseController
             return $this->redirect($this->url('kurzyUser.index'));
         }
 
-
         $p = new PrihlaskaKurz();
         $p->setIdOsoba($activeOsobaId);
         $p->setIdKurz($idKurz);
         $p->setStav('nova');
 
-        // snapshot zákonného zástupcu v čase podania prihlášky
+        // Snapshot of representative at submission time
         $p->setZastupcaMeno($osoba->getZastupcaMeno());
         $p->setZastupcaPriezvisko($osoba->getZastupcaPriezvisko());
         $p->setZastupcaEmail($osoba->getZastupcaEmail());
@@ -135,22 +129,23 @@ class PrihlaskaController extends UserBaseController
     public function show(Request $request): Response
     {
         $id = (int)$request->value('id');
-
         if ($id <= 0) {
             throw new \Exception('Neplatné ID prihlášky.');
         }
 
-
+        // Guard: active osoba must be selected and must belong to the logged-in user
         $activeOsoba = $this->requireActiveOsoba();
+        if ($activeOsoba === null) {
+            return $this->redirect($this->url('osoba.index'));
+        }
         $activeOsobaId = (int)$activeOsoba->getId();
-
 
         $prihlaska = PrihlaskaKurz::getOne($id);
         if ($prihlaska === null) {
             throw new \Exception('Prihláška neexistuje.');
         }
 
-        // prihláška musí patriť aktívnej osobe (a tým pádom userovi)
+        // Application must belong to active osoba (and therefore to the logged-in user)
         if ((int)$prihlaska->getIdOsoba() !== (int)$activeOsobaId) {
             throw new \Exception('K tejto prihláške nemáte prístup.');
         }
@@ -167,16 +162,16 @@ class PrihlaskaController extends UserBaseController
     public function cancel(Request $request): Response
     {
         $id = (int)$request->value('id');
-
         if ($id <= 0) {
             throw new \Exception('Neplatné ID prihlášky.');
         }
 
-        //kontrola ci je  zvolena aktivna osoba a patri userovi
-
+        // Guard: active osoba must be selected and must belong to the logged-in user
         $activeOsoba = $this->requireActiveOsoba();
+        if ($activeOsoba === null) {
+            return $this->redirect($this->url('osoba.index'));
+        }
         $activeOsobaId = (int)$activeOsoba->getId();
-
 
         $prihlaska = PrihlaskaKurz::getOne($id);
         if ($prihlaska === null) {
@@ -188,7 +183,7 @@ class PrihlaskaController extends UserBaseController
         }
 
         if ($prihlaska->getStav() !== 'nova') {
-            // už schválené/zamietnuté/zrušené -> user nesmie
+            // Approved/rejected/canceled -> user cannot cancel
             return $this->redirect($this->url('prihlaska.index'));
         }
 
@@ -197,6 +192,4 @@ class PrihlaskaController extends UserBaseController
 
         return $this->redirect($this->url('prihlaska.index'));
     }
-
-
 }

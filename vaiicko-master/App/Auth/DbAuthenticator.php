@@ -18,7 +18,7 @@ class DbAuthenticator extends SessionAuthenticator
             return null;
         }
 
-        $sql = $sql = "SELECT `id_pouzivatel`, `email`, `password_hash`, `rola`
+        $sql = "SELECT `id_pouzivatel`, `email`, `password_hash`, `rola`
         FROM `pouzivatel`
         WHERE `email` = :email
         LIMIT 1";

@@ -43,7 +43,7 @@ class KurzController extends AdminController
         $obdobia = Obdobie::getAll();
         $typy = TypKurzu::getAll();
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if ($request->isPost()) {
             $this->fillAndValidate($request, $kurz, $errors);
 
             // Bez obdobia a typu nemá kurz význam
@@ -84,7 +84,7 @@ class KurzController extends AdminController
         $obdobia = Obdobie::getAll();
         $typy = TypKurzu::getAll();
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if ($request->isPost()) {
             $this->fillAndValidate($request, $kurz, $errors);
 
             if (empty($obdobia)) {

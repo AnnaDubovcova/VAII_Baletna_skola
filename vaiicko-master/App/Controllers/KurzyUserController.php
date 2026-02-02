@@ -4,51 +4,50 @@ namespace App\Controllers;
 
 use App\Models\Kurz;
 use App\Models\PrihlaskaKurz;
-use App\Models\Osoba;
 use App\Models\TypKurzu;
 use App\Models\Obdobie;
-
-use Framework\Core\BaseController;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
 
 class KurzyUserController extends UserBaseController
 {
-
     public function index(Request $request): Response
     {
-        // kontrola: aktívna osoba musí byt zvolena a musi patriť userovi
+        // Guard: active osoba must be selected and must belong to the logged-in user
         $activeOsoba = $this->requireActiveOsoba();
+        if ($activeOsoba === null) {
+            return $this->redirect($this->url('osoba.index'));
+        }
         $activeOsobaId = (int)$activeOsoba->getId();
 
-
-        // otvorené kurzy
+        // Open courses
         $kurzy = Kurz::getAll(
             "prihlasovanie_otvorene = 1",
             [],
             "nazov ASC"
         );
 
+        // Map course types by ID
         $typy = TypKurzu::getAll();
         $typById = [];
         foreach ($typy as $t) {
             $typById[(int)$t->getId()] = $t;
         }
 
+        // Map periods by ID
         $obdobia = Obdobie::getAll();
         $obdobieById = [];
         foreach ($obdobia as $o) {
             $obdobieById[(int)$o->getId()] = $o;
         }
 
-
-        // existujúce prihlášky aktívnej osoby (kvôli zobrazeniu stavu)
+        // Existing applications for active person (for displaying state)
         $prihlasky = PrihlaskaKurz::getAll(
             "id_osoba = :id",
             ['id' => $activeOsobaId]
         );
 
-        // mapovanie: id_kurz => stav
+        // Map: id_kurz => stav
         $stavByKurzId = [];
         foreach ($prihlasky as $p) {
             if ($p->getIdKurz() !== null) {
@@ -63,14 +62,16 @@ class KurzyUserController extends UserBaseController
             'activeOsoba' => $activeOsoba,
             'typById' => $typById,
             'obdobieById' => $obdobieById,
-
         ]);
     }
 
     public function show(Request $request): Response
     {
-        // kontrola: aktívna osoba musí byt zvolena a musi patriť userovi
+        // Guard: active osoba must be selected and must belong to the logged-in user
         $activeOsoba = $this->requireActiveOsoba();
+        if ($activeOsoba === null) {
+            return $this->redirect($this->url('osoba.index'));
+        }
         $activeOsobaId = (int)$activeOsoba->getId();
 
         $idKurz = (int)$request->value('id_kurz');
@@ -83,7 +84,7 @@ class KurzyUserController extends UserBaseController
             throw new \Exception('Kurz neexistuje.');
         }
 
-        // stav prihlášky (ak existuje)
+        // Application state (if exists)
         $existing = PrihlaskaKurz::getAll(
             "id_osoba = :o AND id_kurz = :k",
             ['o' => $activeOsobaId, 'k' => $idKurz]
@@ -96,6 +97,4 @@ class KurzyUserController extends UserBaseController
             'stav' => $stav,
         ]);
     }
-
 }
-

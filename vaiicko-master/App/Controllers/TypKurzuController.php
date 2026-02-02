@@ -31,7 +31,7 @@ class TypKurzuController extends AdminController
         $errors = [];
         $typ_kurzu = new TypKurzu();
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if ($request->isPost()) {
             $this->fillAndValidate($request, $typ_kurzu, $errors);
 
             if (empty($errors)) {
@@ -60,7 +60,7 @@ class TypKurzuController extends AdminController
 
         $errors = [];
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if ($request->isPost()) {
             $this->fillAndValidate($request, $typ_kurzu, $errors);
 
             if (empty($errors)) {

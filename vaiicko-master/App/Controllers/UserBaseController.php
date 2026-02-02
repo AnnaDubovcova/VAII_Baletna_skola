@@ -42,13 +42,12 @@ abstract class UserBaseController extends BaseController
     /**
      * Vyžaduje aktívnu osobu zo session a overí, že patrí prihlásenému používateľovi.
      */
-    protected function requireActiveOsoba(): Osoba
+    protected function requireActiveOsoba(): ?Osoba
     {
         $activeOsobaId = (int)$this->getActiveOsobaId();
 
         if ($activeOsobaId <= 0) {
-            $this->redirect($this->url('osoba.index'))->send();
-            exit;
+            return null;
         }
 
         $osoba = Osoba::getOne($activeOsobaId);

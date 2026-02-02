@@ -31,7 +31,7 @@ class ObdobieController extends AdminController
         $errors = [];
         $obdobie = new Obdobie();
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if ($request->isPost()) {
             $this->fillAndValidate($request, $obdobie, $errors);
 
             if (empty($errors)) {
@@ -60,7 +60,7 @@ class ObdobieController extends AdminController
 
         $errors = [];
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if ($request->isPost()) {
             $this->fillAndValidate($request, $obdobie, $errors);
 
             if (empty($errors)) {
