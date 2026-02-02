@@ -12,29 +12,15 @@ use Framework\Core\BaseController;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
 
-class KurzyUserController extends BaseController
+class KurzyUserController extends UserBaseController
 {
-    public function authorize(Request $request, string $action): bool
-    {
-        return $this->user->isLoggedIn() && !$this->user->isAdmin();
-    }
 
     public function index(Request $request): Response
     {
-        $activeOsobaId = $this->getActiveOsobaId();
+        // kontrola: aktívna osoba musí byt zvolena a musi patriť userovi
+        $activeOsoba = $this->requireActiveOsoba();
+        $activeOsobaId = (int)$activeOsoba->getId();
 
-        if (!$activeOsobaId) {
-            // najprv si vyber osobu
-            return $this->redirect($this->url('osoba.index'));
-        }
-
-
-        // bezpečnostná kontrola: aktívna osoba musí patriť userovi
-        $activeOsoba = Osoba::getOne($activeOsobaId);
-
-        if ($activeOsoba === null || $activeOsoba->getIdPouzivatel() !== $this->user->getIdPouzivatel()) {
-            throw new \Exception('Neplatná aktívna osoba.');
-        }
 
         // otvorené kurzy
         $kurzy = Kurz::getAll(
@@ -83,15 +69,9 @@ class KurzyUserController extends BaseController
 
     public function show(Request $request): Response
     {
-        $activeOsobaId = $this->getActiveOsobaId();
-        if (!$activeOsobaId) {
-            return $this->redirect($this->url('osoba.index'));
-        }
-
-        $activeOsoba = Osoba::getOne($activeOsobaId);
-        if ($activeOsoba === null || $activeOsoba->getIdPouzivatel() !== $this->user->getIdPouzivatel()) {
-            throw new \Exception('Neplatná aktívna osoba.');
-        }
+        // kontrola: aktívna osoba musí byt zvolena a musi patriť userovi
+        $activeOsoba = $this->requireActiveOsoba();
+        $activeOsobaId = (int)$activeOsoba->getId();
 
         $idKurz = (int)$request->value('id_kurz');
         if ($idKurz <= 0) {

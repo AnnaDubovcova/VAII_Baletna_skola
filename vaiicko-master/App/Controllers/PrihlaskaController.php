@@ -9,20 +9,11 @@ use Framework\Core\BaseController;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
 
-class PrihlaskaController extends BaseController
+class PrihlaskaController extends UserBaseController
 {
-    public function authorize(Request $request, string $action): bool
-    {
-        return $this->user->isLoggedIn() && !$this->user->isAdmin();
-    }
 
     public function index(Request $request): Response
     {
-        $activeOsobaId = $this->getActiveOsobaId();
-
-        if (!$activeOsobaId) {
-            return $this->redirect($this->url('osoba.index'));
-        }
 
         /*
         $prihlasky = PrihlaskaKurz::getAll(
@@ -36,10 +27,9 @@ class PrihlaskaController extends BaseController
             'prihlasky' => $prihlasky,
             'activeOsobaId' => $activeOsobaId,
         ]);*/
-        $activeOsoba = Osoba::getOne($activeOsobaId);
-        if ($activeOsoba === null || $activeOsoba->getIdPouzivatel() !== $this->user->getIdPouzivatel()) {
-            throw new \Exception('Neplatná aktívna osoba.');
-        }
+        $activeOsoba = $this->requireActiveOsoba();
+        $activeOsobaId = (int)$activeOsoba->getId();
+
 
         $prihlasky = PrihlaskaKurz::getAll(
             'id_osoba = :id',
@@ -84,17 +74,11 @@ class PrihlaskaController extends BaseController
     public function create(Request $request): Response
     {
         $idKurz = (int)$request->value('id_kurz');
-        $activeOsobaId = $this->getActiveOsobaId();
 
-        if (!$activeOsobaId) {
-            return $this->redirect($this->url('osoba.index'));
-        }
+        // kontrola: aktívna osoba musí patriť userovi
+        $osoba = $this->requireActiveOsoba();
+        $activeOsobaId = (int)$osoba->getId();
 
-        // bezpečnostná kontrola: aktívna osoba musí patriť userovi
-        $osoba = Osoba::getOne($activeOsobaId);
-        if ($osoba === null || $osoba->getIdPouzivatel() !== $this->user->getIdPouzivatel()) {
-            throw new \Exception('Neplatná aktívna osoba.');
-        }
 
         // kurz musí existovať a byť otvorený
         $kurz = Kurz::getOne($idKurz);
@@ -156,15 +140,10 @@ class PrihlaskaController extends BaseController
             throw new \Exception('Neplatné ID prihlášky.');
         }
 
-        $activeOsobaId = $this->getActiveOsobaId();
-        if (!$activeOsobaId) {
-            return $this->redirect($this->url('osoba.index'));
-        }
 
-        $activeOsoba = Osoba::getOne($activeOsobaId);
-        if ($activeOsoba === null || $activeOsoba->getIdPouzivatel() !== $this->user->getIdPouzivatel()) {
-            throw new \Exception('Neplatná aktívna osoba.');
-        }
+        $activeOsoba = $this->requireActiveOsoba();
+        $activeOsobaId = (int)$activeOsoba->getId();
+
 
         $prihlaska = PrihlaskaKurz::getOne($id);
         if ($prihlaska === null) {
@@ -193,10 +172,11 @@ class PrihlaskaController extends BaseController
             throw new \Exception('Neplatné ID prihlášky.');
         }
 
-        $activeOsobaId = $this->getActiveOsobaId();
-        if (!$activeOsobaId) {
-            return $this->redirect($this->url('osoba.index'));
-        }
+        //kontrola ci je  zvolena aktivna osoba a patri userovi
+
+        $activeOsoba = $this->requireActiveOsoba();
+        $activeOsobaId = (int)$activeOsoba->getId();
+
 
         $prihlaska = PrihlaskaKurz::getOne($id);
         if ($prihlaska === null) {

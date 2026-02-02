@@ -3,32 +3,23 @@
 namespace App\Controllers;
 
 use App\Models\Osoba;
-use Framework\Core\BaseController;
+use Framework\Http\HttpException;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
 use Framework\Http\Session;
 
-class OsobaController extends BaseController
+class OsobaController extends OsobaBaseController
 {
-    public function authorize(Request $request, string $action): bool
-    {
-        if (!$this->user->isLoggedIn()) return false;
-
-        if ($this->user->isAdmin()) {
-            return in_array($action, ['show'], true); // admin len show
-        }
-
-        return in_array($action, ['index','create','edit','delete','show', 'select'], true);
-    }
-
-
+    /**
+     * Zoznam osôb prihláseného používateľa.
+     */
     public function index(Request $request): Response
     {
-        $id_pouzivatel = $this->user->getIdPouzivatel();
+        $idPouzivatel = $this->identity()->getIdPouzivatel();
 
         $osoby = Osoba::getAll(
             "id_pouzivatel = :id",
-            ['id' => $id_pouzivatel],
+            ['id' => $idPouzivatel],
             "created_at DESC"
         );
 
@@ -41,7 +32,9 @@ class OsobaController extends BaseController
         ]);
     }
 
-
+    /**
+     * Vytvorenie novej osoby.
+     */
     public function create(Request $request): Response
     {
         $errors = [];
@@ -51,7 +44,7 @@ class OsobaController extends BaseController
             $this->fillAndValidate($request, $osoba, $errors);
 
             if (empty($errors)) {
-                $osoba->setIdPouzivatel($this->user->getIdPouzivatel());
+                $osoba->setIdPouzivatel($this->identity()->getIdPouzivatel());
                 $osoba->save();
 
                 return $this->redirect($this->url('osoba.index'));
@@ -65,20 +58,17 @@ class OsobaController extends BaseController
         ], 'form');
     }
 
+    /**
+     * Úprava údajov osoby.
+     */
     public function edit(Request $request): Response
     {
-        $id_osoba = (int)$request->value('id_osoba');
-        $osoba = Osoba::getOne($id_osoba);
-
-        if ($osoba === null) {
-            throw new \Exception('Osoba nebola najdena.');
+        $idOsoba = (int)$request->value('id_osoba');
+        if ($idOsoba <= 0) {
+            throw new HttpException(400, 'Neplatné ID osoby.');
         }
 
-        // Overime, ze osoba patri prihlasenemu pouzivatelovi.
-        if ($osoba->getIdPouzivatel() !== $this->user->getIdPouzivatel()) {
-            throw new \Exception('Nemate opravnenie upravovat tuto osobu.');
-        }
-
+        $osoba = $this->requireOwnedOsoba($idOsoba);
         $errors = [];
 
         if ($request->isPost()) {
@@ -97,152 +87,163 @@ class OsobaController extends BaseController
         ], 'form');
     }
 
+    /**
+     * Zmazanie osoby používateľa.
+     */
     public function delete(Request $request): Response
     {
-        $id_osoba = (int)$request->value('id_osoba');
-        $osoba = Osoba::getOne($id_osoba);
-
-        if ($osoba === null) {
-            throw new \Exception('Osoba nebola najdena.');
+        $idOsoba = (int)$request->value('id_osoba');
+        if ($idOsoba <= 0) {
+            throw new HttpException(400, 'Neplatné ID osoby.');
         }
 
-        // Overime, ze osoba patri prihlasenemu pouzivatelovi.
-        if ($osoba->getIdPouzivatel() !== $this->user->getIdPouzivatel()) {
-            throw new \Exception('Nemate opravnenie zmazat tuto osobu.');
-        }
-
+        $osoba = $this->requireOwnedOsoba($idOsoba);
         $osoba->delete();
+
+        // Ak bola zmazaná aktívna osoba, odstránime ju zo session
+        $session = new Session();
+        if ((int)$session->get('active_osoba_id') === $idOsoba) {
+            $session->set('active_osoba_id', null);
+        }
+
         return $this->redirect($this->url('osoba.index'));
     }
 
+    /**
+     * Zobrazenie detailu osoby.
+     * Admin môže zobraziť ľubovoľnú osobu, používateľ len vlastnú.
+     */
     public function show(Request $request): Response
     {
-        $id_osoba = (int)$request->value('id_osoba');
-        $osoba = Osoba::getOne($id_osoba);
+        $idOsoba = (int)$request->value('id_osoba');
+        if ($idOsoba <= 0) {
+            throw new HttpException(400, 'Neplatné ID osoby.');
+        }
 
+        $osoba = Osoba::getOne($idOsoba);
         if ($osoba === null) {
-            throw new \Exception('Osoba nebola najdena.');
+            throw new HttpException(404, 'Osoba nebola nájdená.');
         }
 
-        // Overime opravnenia na zobrazenie osoby - len admin alebo vlastnik.
-        if (!$this->user->isAdmin() &&
-            $osoba->getIdPouzivatel() !== $this->user->getIdPouzivatel()) {
-            throw new \Exception('Nemate opravnenie zobrazit tuto osobu.');
+        $identity = $this->identity();
+
+        if (!$identity->isAdmin() &&
+            (int)$osoba->getIdPouzivatel() !== (int)$identity->getIdPouzivatel()) {
+            throw new HttpException(403, 'Nemáte oprávnenie zobraziť túto osobu.');
         }
-
-
-        $canEdit = !$this->user->isAdmin();
-
-        $returnTo = (string)$request->value('return_to');
-
 
         return $this->html([
             'osoba' => $osoba,
-            'canEdit' => $canEdit,
-            'user' => $this->user,
-            'returnTo' => $returnTo,
+            'canEdit' => !$identity->isAdmin(),
+            'user' => $identity,
+            'returnTo' => (string)$request->value('return_to'),
         ]);
-
-
     }
 
-
+    /**
+     * Nastavenie aktívnej osoby do session.
+     */
     public function select(Request $request): Response
     {
-        $id_osoba = (int)$request->value('id_osoba');
-        $osoba = Osoba::getOne($id_osoba);
-
-        if ($osoba === null) {
-            throw new \Exception('Osoba nebola najdena.');
+        $idOsoba = (int)$request->value('id_osoba');
+        if ($idOsoba <= 0) {
+            throw new HttpException(400, 'Neplatné ID osoby.');
         }
 
-        if ($osoba->getIdPouzivatel() !== $this->user->getIdPouzivatel()) {
-            throw new \Exception('Nemate opravnenie vybrat tuto osobu.');
-        }
+        $osoba = $this->requireOwnedOsoba($idOsoba);
 
         $session = new Session();
-        $session->set('active_osoba_id', $id_osoba);
+        $session->set('active_osoba_id', (int)$osoba->getId());
 
         return $this->redirect($this->url('osoba.index'));
     }
 
-
-
+    /**
+     * Naplnenie modelu z requestu a validácia vstupov.
+     */
     private function fillAndValidate(Request $request, Osoba $osoba, array &$errors): void
     {
         $meno = trim((string)$request->value('meno'));
         $priezvisko = trim((string)$request->value('priezvisko'));
-        $datum_narodenia = trim((string)$request->value('datum_narodenia'));
+        $datumNarodenia = trim((string)$request->value('datum_narodenia'));
 
         $email = trim((string)$request->value('email'));
         $telefon = trim((string)$request->value('telefon'));
 
-        $z_meno = trim((string)$request->value('zastupca_meno'));
-        $z_priezvisko = trim((string)$request->value('zastupca_priezvisko'));
-        $z_email = trim((string)$request->value('zastupca_email'));
-        $z_telefon = trim((string)$request->value('zastupca_telefon'));
+        $zMeno = trim((string)$request->value('zastupca_meno'));
+        $zPriezvisko = trim((string)$request->value('zastupca_priezvisko'));
+        $zEmail = trim((string)$request->value('zastupca_email'));
+        $zTelefon = trim((string)$request->value('zastupca_telefon'));
 
         if ($meno === '' || mb_strlen($meno) > 80) {
-            $errors['meno'] = 'Meno je povinne a maximalne 80 znakov.';
+            $errors['meno'] = 'Meno je povinné a maximálne 80 znakov.';
         } else {
             $osoba->setMeno($meno);
         }
 
         if ($priezvisko === '' || mb_strlen($priezvisko) > 80) {
-            $errors['priezvisko'] = 'Priezvisko je povinne a maximalne 80 znakov.';
+            $errors['priezvisko'] = 'Priezvisko je povinné a maximálne 80 znakov.';
         } else {
             $osoba->setPriezvisko($priezvisko);
         }
 
-        if ($datum_narodenia === '') {
-            $errors['datum_narodenia'] = 'Datum narodenia je povinny.';
+        if ($datumNarodenia === '') {
+            $errors['datum_narodenia'] = 'Dátum narodenia je povinný.';
         } else {
-            $osoba->setDatumNarodenia($datum_narodenia);
+            $osoba->setDatumNarodenia($datumNarodenia);
         }
 
-        // Kontakt studenta - volitelne, ale ak je plnolety, budeme vyzadovat aspon jedno.
         $osoba->setEmail($email === '' ? null : $email);
         $osoba->setTelefon($telefon === '' ? null : $telefon);
 
-        // Udaje zastupcu - volitelne, ale ak je neplnolety, budeme vyzadovat aspon jedno.
-        $osoba->setZastupcaMeno($z_meno === '' ? null : $z_meno);
-        $osoba->setZastupcaPriezvisko($z_priezvisko === '' ? null : $z_priezvisko);
-        $osoba->setZastupcaEmail($z_email === '' ? null : $z_email);
-        $osoba->setZastupcaTelefon($z_telefon === '' ? null : $z_telefon);
+        $osoba->setZastupcaMeno($zMeno === '' ? null : $zMeno);
+        $osoba->setZastupcaPriezvisko($zPriezvisko === '' ? null : $zPriezvisko);
+        $osoba->setZastupcaEmail($zEmail === '' ? null : $zEmail);
+        $osoba->setZastupcaTelefon($zTelefon === '' ? null : $zTelefon);
 
-        $this->validateContactsByAge($datum_narodenia, $email, $telefon, $z_email, $z_telefon, $errors);
+        $this->validateContactsByAge(
+            $datumNarodenia,
+            $email,
+            $telefon,
+            $zEmail,
+            $zTelefon,
+            $errors
+        );
     }
 
+    /**
+     * Kontrola povinných kontaktných údajov podľa veku osoby.
+     */
     private function validateContactsByAge(
-        string $datum_narodenia,
+        string $datumNarodenia,
         string $email,
         string $telefon,
-        string $z_email,
-        string $z_telefon,
+        string $zEmail,
+        string $zTelefon,
         array &$errors
     ): void {
-        $isAdult = $this->isAdult($datum_narodenia);
+        $isAdult = $this->isAdult($datumNarodenia);
 
         if ($isAdult) {
             if ($email === '' && $telefon === '') {
-                $errors['global'] = 'Plnolety student musi mat vyplneny email alebo telefon.';
+                $errors['global'] =
+                    'Plnoletý študent musí mať vyplnený email alebo telefón.';
             }
         } else {
-            if ($z_email === '' && $z_telefon === '') {
-                $errors['global'] = 'Neplnolety student musi mat vyplneny email alebo telefon zakonneho zastupcu.';
+            if ($zEmail === '' && $zTelefon === '') {
+                $errors['global'] =
+                    'Neplnoletý študent musí mať vyplnený email alebo telefón zákonného zástupcu.';
             }
         }
     }
 
-    private function isAdult(string $datum_narodenia): bool
+    private function isAdult(string $datumNarodenia): bool
     {
         try {
-            $birth = new \DateTime($datum_narodenia);
+            $birth = new \DateTime($datumNarodenia);
             $today = new \DateTime();
-            $age = $today->diff($birth)->y;
-            return $age >= 18;
+            return $today->diff($birth)->y >= 18;
         } catch (\Exception $e) {
-            // Ak datum nie je validny, nech sa to zachyti vo validacii povinneho datumu.
             return false;
         }
     }
