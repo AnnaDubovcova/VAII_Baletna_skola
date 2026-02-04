@@ -86,8 +86,16 @@ class ViewResponse extends Response
         $contentHTML = ob_get_clean();
 
         if ($selectedLayout !== null) {
+            /*
             $layoutData = $viewHelpers + ['contentHTML' => $contentHTML];
             $this->renderView($layoutData, $this->getLayoutFullName($selectedLayout));
+                */
+            $layoutData = $viewHelpers + $this->data + [
+                    'contentHTML' => $contentHTML,
+                    'view' => $view,
+                ];
+            $this->renderView($layoutData, $this->getLayoutFullName($selectedLayout));
+
         } else {
             echo $contentHTML;
         }

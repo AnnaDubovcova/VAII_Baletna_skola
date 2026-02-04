@@ -63,8 +63,9 @@ class UdalostController extends AdminController
     {
         $obdobieId = $this->getActiveObdobieId();
         if ($obdobieId === null) {
-            throw new \Exception('Nie je zvolené aktívne obdobie.');
+            return $this->redirect($this->url('obdobie.create'));
         }
+
 
         $udalost = new Udalost();
         $udalost->setIdObdobie($obdobieId);
@@ -293,9 +294,6 @@ class UdalostController extends AdminController
         $udalost->setMiesto($miesto === '' ? null : $miesto);
         $udalost->setPopis($popis === '' ? null : $popis);
 
-        if (empty($selectedSkupiny)) {
-            $errors['skupiny'] = 'Vyberte aspoň jednu skupinu.';
-        }
     }
 
     private function toDbDateTime(string $datetimeLocal): string

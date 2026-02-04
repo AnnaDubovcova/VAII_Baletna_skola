@@ -72,14 +72,33 @@
 
                 <!-- Pravá strana: notifikácie / login -->
                 <div class="d-flex align-items-center">
-
+                    <!-- Logged in user -->
                     <?php if ($user->isLoggedIn()) { ?>
                         <!-- Notification icon -->
                         <a href="#" class="nav-link me-3 text-secondary">
                             <i class="bi bi-bell" style="font-size: 1.3rem;"></i>
                         </a>
 
-                        <!-- Logged in user -->
+                        <!-- Admin obdobie selector -->
+
+
+                        <?php if ($user->isAdmin()): ?>
+                            <?php $ctxData = $ctx ?? []; ?>
+                            <?php if (!empty($ctxData['obdobia'])): ?>
+                                <form method="post" action="<?= $link->url('obdobie.setActive') ?>" class="me-3">
+                                    <select name="id_obdobie" class="form-select form-select-sm" onchange="this.form.submit()">
+                                        <?php foreach ($ctxData['obdobia'] as $o): ?>
+                                            <option value="<?= (int)$o->getId() ?>"
+                                                    <?= ((int)$o->getId() === (int)($ctxData['activeObdobieId'] ?? 0)) ? 'selected' : '' ?>>
+                                                <?= htmlspecialchars((string)$o->getNazov()) ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </form>
+                            <?php endif; ?>
+                        <?php endif; ?>
+
+
                         <span class="navbar-text me-3">Prihlásený: <b><?= htmlspecialchars($user->getName()) ?></b></span>
 
                         <a class="nav-link" href="<?= $link->url('auth.logout') ?>">Odhlásiť</a>

@@ -118,6 +118,21 @@ class ObdobieController extends AdminController
         }
     }
 
+    public function setActive(Request $request): Response
+    {
+        $id = (int)$request->value('id_obdobie');
+
+        // Validácia: musí existovať
+        $o = Obdobie::getOne($id);
+        if ($o !== null) {
+            $this->setActiveObdobieId($id);
+        }
+
+        // Najjednoduchšie: vráť sa na udalosti (alebo na obdobia)
+        return $this->redirect($this->url('udalost.index'));
+    }
+
+
 
 
     /**

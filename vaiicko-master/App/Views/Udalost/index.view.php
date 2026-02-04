@@ -6,6 +6,8 @@
 
 <h1 class="page-title">Udalosti</h1>
 
+
+
 <div class="mb-3 d-flex gap-2">
     <a class="btn btn-primary" href="<?= $link->url('udalost.create') ?>">
         <i class="bi bi-plus-lg"></i> Nová udalosť
