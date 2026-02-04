@@ -160,7 +160,7 @@ class ObdobieController extends AdminController
             $errors['popis'] = 'Popis môže mať max. 1000 znakov.';
         }
 
-        // Napln model len, keď chceme pokračovať (aj pri chybách, aby sa hodnoty vrátili do formulára)
+        // Napln model aj pri chybách, aby sa hodnoty vrátili do formulára
         $obdobie->setNazov($nazov);
         $obdobie->setDatumOd($datumOd);
         $obdobie->setDatumDo($datumDo);

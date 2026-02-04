@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Framework\Core\Model;
+use Framework\DB\Connection;
 
 class Udalost extends Model
 {
@@ -14,6 +15,8 @@ class Udalost extends Model
     protected ?string $miesto = null;
     protected ?string $popis = null;
     protected ?string $created_at = null;
+
+    protected ?int $id_obdobie = null; // FK na obdobie, v ktorom sa udalost koná
 
     protected static function getPkColumnName(): string
     {
@@ -45,5 +48,70 @@ class Udalost extends Model
     public function getPopis(): ?string { return $this->popis; }
     public function setPopis(?string $popis): void { $this->popis = $popis; }
 
+    public function getIdObdobie(): int
+    {
+        return (int)$this->id_obdobie;
+    }
+
+    public function setIdObdobie(int $idObdobie): void
+    {
+        $this->id_obdobie = $idObdobie;
+    }
+
+
+
     public function getCreatedAt(): ?string { return $this->created_at; }
+
+
+    /*
+     * Vráti ID skupín priradených k udalosti.
+     */
+    public function getSkupinaIds(): array
+    {
+        $con = Connection::getInstance();
+        $stmt = $con->prepare(
+            'SELECT id_skupina FROM udalost_skupina WHERE id_udalost = :u'
+        );
+        $stmt->execute(['u' => $this->getId()]);
+
+        return array_map(
+            fn($r) => (int)$r['id_skupina'],
+            $stmt->fetchAll(\PDO::FETCH_ASSOC)
+        );
+    }
+
+    /**
+     * Synchronizuje skupiny udalosti (DELETE + INSERT).
+     */
+    public function syncSkupiny(array $skupinaIds): void
+    {
+        $con = Connection::getInstance();
+        $con->beginTransaction();
+
+        try {
+            $con->prepare(
+                'DELETE FROM udalost_skupina WHERE id_udalost = :u'
+            )->execute(['u' => $this->getId()]);
+
+            if (!empty($skupinaIds)) {
+                $stmt = $con->prepare(
+                    'INSERT INTO udalost_skupina (id_udalost, id_skupina)
+                     VALUES (:u, :s)'
+                );
+
+                foreach ($skupinaIds as $sid) {
+                    $stmt->execute([
+                        'u' => $this->getId(),
+                        's' => (int)$sid,
+                    ]);
+                }
+            }
+
+            $con->commit();
+        } catch (\Throwable $e) {
+            $con->rollBack();
+            throw $e;
+        }
+    }
+
 }

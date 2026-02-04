@@ -6,7 +6,7 @@ use Framework\Core\BaseController;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
 
-class AdminController extends BaseController
+class AdminController extends AppController
 {
     /**
      * Admin sekcia: povolený je len prihlásený admin.

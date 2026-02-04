@@ -8,7 +8,7 @@ use Framework\Core\BaseController;
 use Framework\Http\HttpException;
 use Framework\Http\Request;
 
-abstract class UserBaseController extends BaseController
+abstract class UserBaseController extends AppController
 {
     /**
      * Vráti PouzivatelIdentity alebo null (ak user nie je prihlásený alebo má inú identitu).

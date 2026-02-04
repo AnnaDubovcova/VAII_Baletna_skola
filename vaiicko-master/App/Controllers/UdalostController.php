@@ -10,84 +10,81 @@ use Framework\DB\Connection;
 
 class UdalostController extends AdminController
 {
+    /**
+     * Zoznam udalostí – implicitne filtrovaný podľa aktívneho obdobia.
+     */
     public function index(Request $request): Response
     {
-        $udalosti = Udalost::getAll('', [], 'zaciatok DESC');
-
-        $con = Connection::getInstance();
-        $stmt = $con->prepare("
-        SELECT us.id_udalost, s.id_skupina, s.nazov
-        FROM udalost_skupina us
-        JOIN skupina s ON s.id_skupina = us.id_skupina
-    ");
-        $stmt->execute();
-        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        $skupinyByUdalost = [];
-        foreach ($rows as $r) {
-            $skupinyByUdalost[(int)$r['id_udalost']][] = [
-                'id' => (int)$r['id_skupina'],
-                'nazov' => $r['nazov']
-            ];
+        $obdobieId = $this->getActiveObdobieId();
+        if ($obdobieId === null) {
+            throw new \Exception('Nie je zvolené aktívne obdobie.');
         }
+
+        $udalosti = Udalost::getAll(
+            'id_obdobie = :o',
+            ['o' => $obdobieId],
+            'zaciatok DESC'
+        );
+
+        // Načítanie skupín pre všetky udalosti naraz (bez N+1 dotazov)
+        $udalostIds = array_map(fn($u) => (int)$u->getId(), $udalosti);
+        $skupinyByUdalost = $this->getSkupinyByUdalostIds($udalostIds);
 
         return $this->html([
             'udalosti' => $udalosti,
-            'skupinyByUdalost' => $skupinyByUdalost
+            'skupinyByUdalost' => $skupinyByUdalost,
         ]);
     }
 
-
+    /**
+     * Detail udalosti.
+     */
     public function show(Request $request): Response
     {
         $id = (int)$request->value('id_udalost');
         $udalost = Udalost::getOne($id);
 
-        $con = Connection::getInstance();
-        $stmt = $con->prepare("
-        SELECT s.id_skupina, s.nazov
-        FROM udalost_skupina us
-        JOIN skupina s ON s.id_skupina = us.id_skupina
-        WHERE us.id_udalost = :id
-    ");
-        $stmt->execute(['id'=>$id]);
+        if ($udalost === null) {
+            throw new \Exception('Udalosť nenájdená.');
+        }
+
+        $skupiny = $this->getSkupinyForUdalost($id);
 
         return $this->html([
-            'udalost'=>$udalost,
-            'skupiny'=>$stmt->fetchAll(\PDO::FETCH_ASSOC)
+            'udalost' => $udalost,
+            'skupiny' => $skupiny,
         ]);
     }
 
-
+    /**
+     * Vytvorenie novej udalosti – viazané na aktívne obdobie.
+     */
     public function create(Request $request): Response
     {
+        $obdobieId = $this->getActiveObdobieId();
+        if ($obdobieId === null) {
+            throw new \Exception('Nie je zvolené aktívne obdobie.');
+        }
+
         $udalost = new Udalost();
+        $udalost->setIdObdobie($obdobieId);
+
         $errors = [];
 
-        $skupiny = Skupina::getAll();
+        // Admin môže vyberať len skupiny z aktívneho obdobia
+        $skupiny = Skupina::getAll(
+            'id_obdobie = :o',
+            ['o' => $obdobieId],
+            'nazov ASC'
+        );
 
         if ($request->isPost()) {
-            $this->fillAndValidate($request, $udalost, $errors);
-
-            $ids = $request->value('id_skupina') ?? [];
-
-            if (empty($ids)) {
-                $errors['skupiny'] = 'Vyberte aspoň jednu skupinu.';
-            }
+            $selected = $this->selectedSkupinyFromRequest($request);
+            $this->fillAndValidate($request, $udalost, $selected, $errors);
 
             if (empty($errors)) {
                 $udalost->save();
-
-                $con = Connection::getInstance();
-                foreach ($ids as $sid) {
-                    $stmt = $con->prepare(
-                        "INSERT INTO udalost_skupina (id_udalost, id_skupina) VALUES (:u,:s)"
-                    );
-                    $stmt->execute([
-                        'u' => $udalost->getId(),
-                        's' => (int)$sid
-                    ]);
-                }
+                $udalost->syncSkupiny($selected);
 
                 return $this->redirect($this->url('udalost.index'));
             }
@@ -98,105 +95,169 @@ class UdalostController extends AdminController
             'errors' => $errors,
             'skupiny' => $skupiny,
             'selectedSkupiny' => [],
-            'formAction' => 'create'
+            'formAction' => 'create',
         ], 'form');
     }
 
-
+    /**
+     * Úprava existujúcej udalosti.
+     * Obdobie sa nemení – skupiny musia patriť do rovnakého obdobia.
+     */
     public function edit(Request $request): Response
     {
         $id = (int)$request->value('id_udalost');
         $udalost = Udalost::getOne($id);
-        if (!$udalost) throw new \Exception('Udalosť nenájdená.');
+
+        if ($udalost === null) {
+            throw new \Exception('Udalosť nenájdená.');
+        }
 
         $errors = [];
-        $skupiny = Skupina::getAll();
+        $obdobieId = (int)$udalost->getIdObdobie();
 
-        $con = Connection::getInstance();
-        $stmt = $con->prepare("SELECT id_skupina FROM udalost_skupina WHERE id_udalost = :id");
-        $stmt->execute(['id'=>$id]);
-        $selected = array_column($stmt->fetchAll(\PDO::FETCH_ASSOC),'id_skupina');
+        $skupiny = Skupina::getAll(
+            'id_obdobie = :o',
+            ['o' => $obdobieId],
+            'nazov ASC'
+        );
+
+        $selected = $udalost->getSkupinaIds();
+
 
         if ($request->isPost()) {
-            $this->fillAndValidate($request, $udalost, $errors);
-            $ids = $request->value('id_skupina') ?? [];
-
-            if (empty($ids)) {
-                $errors['skupiny'] = 'Vyberte aspoň jednu skupinu.';
-            }
+            $selected = $this->selectedSkupinyFromRequest($request);
+            $this->fillAndValidate($request, $udalost, $selected, $errors);
 
             if (empty($errors)) {
                 $udalost->save();
+                $udalost->syncSkupiny($selected);
 
-                $con->prepare("DELETE FROM udalost_skupina WHERE id_udalost = :id")
-                    ->execute(['id'=>$id]);
-
-                foreach ($ids as $sid) {
-                    $con->prepare(
-                        "INSERT INTO udalost_skupina (id_udalost,id_skupina) VALUES (:u,:s)"
-                    )->execute([
-                        'u'=>$id,
-                        's'=>(int)$sid
-                    ]);
-                }
 
                 return $this->redirect($this->url('udalost.index'));
             }
         }
 
         return $this->html([
-            'udalost'=>$udalost,
-            'errors'=>$errors,
-            'skupiny'=>$skupiny,
-            'selectedSkupiny'=>$selected,
-            'formAction'=>'edit'
-        ],'form');
+            'udalost' => $udalost,
+            'errors' => $errors,
+            'skupiny' => $skupiny,
+            'selectedSkupiny' => $selected,
+            'formAction' => 'edit',
+        ], 'form');
     }
 
-
+    /**
+     * Zmazanie udalosti + väzieb na skupiny.
+     */
     public function delete(Request $request): Response
     {
         $id = (int)$request->value('id_udalost');
 
-        $con = Connection::getInstance();
-        $con->prepare("DELETE FROM udalost_skupina WHERE id_udalost = :id")
-            ->execute(['id'=>$id]);
+        $udalost = Udalost::getOne($id);
+        if ($udalost === null) {
+            throw new \Exception('Udalosť nenájdená.');
+        }
 
-        $u = Udalost::getOne($id);
-        if ($u) $u->delete();
+        $udalost->syncSkupiny([]); // vymaže väzby
+
+        $udalost->delete();
 
         return $this->redirect($this->url('udalost.index'));
     }
 
+    // =========================================================
+    // Helper metódy – technická M:N logika (pivot tabuľka)
+    // =========================================================
 
-    // --------------------------------------------------------
-    // Helpers (bezpečné SQL cez Connection::getInstance + prepare)
-    // --------------------------------------------------------
-
+    /**
+     * Získa ID skupín z requestu (checkboxy).
+     */
     private function selectedSkupinyFromRequest(Request $request): array
     {
-        // očakávame checkboxy name="id_skupina[]"
         $raw = $request->value('id_skupina');
 
-        if (is_array($raw)) {
-            $out = [];
-            foreach ($raw as $v) {
-                $out[] = (int)$v;
-            }
-            $out = array_values(array_unique(array_filter($out, fn($x) => $x > 0)));
-            return $out;
-        }
-
-        if ($raw === null || $raw === '') {
+        if (!is_array($raw)) {
             return [];
         }
 
-        $id = (int)$raw;
-        return $id > 0 ? [$id] : [];
+        $ids = [];
+        foreach ($raw as $v) {
+            $id = (int)$v;
+            if ($id > 0) {
+                $ids[] = $id;
+            }
+        }
+
+        return array_values(array_unique($ids));
     }
 
-    private function fillAndValidate(Request $request, Udalost $udalost, array $selectedSkupiny, array &$errors): void
+    /**
+     * Vráti skupiny priradené ku konkrétnej udalosti.
+     */
+    private function getSkupinyForUdalost(int $idUdalost): array
     {
+        $con = Connection::getInstance();
+        $stmt = $con->prepare(
+            'SELECT s.id_skupina, s.nazov
+             FROM udalost_skupina us
+             JOIN skupina s ON s.id_skupina = us.id_skupina
+             WHERE us.id_udalost = :u
+             ORDER BY s.nazov ASC'
+        );
+        $stmt->execute(['u' => $idUdalost]);
+
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Vráti mapu: id_udalost → [skupiny].
+     */
+    private function getSkupinyByUdalostIds(array $udalostIds): array
+    {
+        if (empty($udalostIds)) {
+            return [];
+        }
+
+        $placeholders = [];
+        $params = [];
+        foreach ($udalostIds as $i => $id) {
+            $key = 'u' . $i;
+            $placeholders[] = ':' . $key;
+            $params[$key] = (int)$id;
+        }
+
+        $sql = '
+            SELECT us.id_udalost, s.id_skupina, s.nazov
+            FROM udalost_skupina us
+            JOIN skupina s ON s.id_skupina = us.id_skupina
+            WHERE us.id_udalost IN (' . implode(',', $placeholders) . ')
+            ORDER BY s.nazov ASC
+        ';
+
+        $con = Connection::getInstance();
+        $stmt = $con->prepare($sql);
+        $stmt->execute($params);
+
+        $out = [];
+        foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+            $out[(int)$r['id_udalost']][] = [
+                'id' => (int)$r['id_skupina'],
+                'nazov' => (string)$r['nazov'],
+            ];
+        }
+
+        return $out;
+    }
+
+    /**
+     * Validácia vstupov + naplnenie modelu.
+     */
+    private function fillAndValidate(
+        Request $request,
+        Udalost $udalost,
+        array $selectedSkupiny,
+        array &$errors
+    ): void {
         $nazov = trim((string)$request->value('nazov'));
         $typ = trim((string)$request->value('typ'));
         $zaciatok = trim((string)$request->value('zaciatok'));
@@ -232,20 +293,6 @@ class UdalostController extends AdminController
         $udalost->setMiesto($miesto === '' ? null : $miesto);
         $udalost->setPopis($popis === '' ? null : $popis);
 
-        // validácia času: koniec >= začiatok
-        if ($zaciatok !== '' && $koniec !== '') {
-            try {
-                $z = new \DateTime($this->toDbDateTime($zaciatok));
-                $k = new \DateTime($this->toDbDateTime($koniec));
-                if ($k < $z) {
-                    $errors['koniec'] = 'Koniec nemôže byť pred začiatkom.';
-                }
-            } catch (\Throwable $e) {
-                $errors['zaciatok'] = $errors['zaciatok'] ?? 'Neplatný dátum začiatku.';
-                $errors['koniec'] = $errors['koniec'] ?? 'Neplatný dátum konca.';
-            }
-        }
-
         if (empty($selectedSkupiny)) {
             $errors['skupiny'] = 'Vyberte aspoň jednu skupinu.';
         }
@@ -253,105 +300,10 @@ class UdalostController extends AdminController
 
     private function toDbDateTime(string $datetimeLocal): string
     {
-        // "2026-01-21T17:30" -> "2026-01-21 17:30:00"
         $s = str_replace('T', ' ', $datetimeLocal);
         if (strlen($s) === 16) {
             $s .= ':00';
         }
         return $s;
-    }
-
-    private function getSkupinyForUdalost(int $idUdalost): array
-    {
-        $con = Connection::getInstance();
-        $stmt = $con->prepare(
-            "SELECT s.id_skupina, s.nazov
-             FROM udalost_skupina us
-             JOIN skupina s ON s.id_skupina = us.id_skupina
-             WHERE us.id_udalost = :u
-             ORDER BY s.nazov ASC"
-        );
-        $stmt->execute(['u' => $idUdalost]);
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
-    }
-
-    private function getSkupinaIdsForUdalost(int $idUdalost): array
-    {
-        $con = Connection::getInstance();
-        $stmt = $con->prepare("SELECT id_skupina FROM udalost_skupina WHERE id_udalost = :u");
-        $stmt->execute(['u' => $idUdalost]);
-        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        $ids = [];
-        foreach ($rows as $r) {
-            $ids[] = (int)$r['id_skupina'];
-        }
-        return $ids;
-    }
-
-    private function saveUdalostSkupiny(int $idUdalost, array $selectedSkupiny): void
-    {
-        $con = Connection::getInstance();
-        $con->beginTransaction();
-
-        try {
-            $stmtDel = $con->prepare("DELETE FROM udalost_skupina WHERE id_udalost = :u");
-            $stmtDel->execute(['u' => $idUdalost]);
-
-            if (!empty($selectedSkupiny)) {
-                $stmtIns = $con->prepare(
-                    "INSERT INTO udalost_skupina (id_udalost, id_skupina) VALUES (:u, :s)"
-                );
-
-                foreach ($selectedSkupiny as $sid) {
-                    $stmtIns->execute([
-                        'u' => $idUdalost,
-                        's' => (int)$sid
-                    ]);
-                }
-            }
-
-            $con->commit();
-        } catch (\Throwable $e) {
-            $con->rollBack();
-            throw $e;
-        }
-    }
-
-
-    private function getSkupinyByUdalostIds(array $udalostIds): array
-    {
-        if (empty($udalostIds)) return [];
-
-        $con = Connection::getInstance();
-
-        $placeholders = [];
-        $params = [];
-        foreach ($udalostIds as $i => $id) {
-            $key = 'u' . $i;
-            $placeholders[] = ':' . $key;
-            $params[$key] = (int)$id;
-        }
-
-        $sql = "SELECT us.id_udalost, s.id_skupina, s.nazov
-                FROM udalost_skupina us
-                JOIN skupina s ON s.id_skupina = us.id_skupina
-                WHERE us.id_udalost IN (" . implode(',', $placeholders) . ")
-                ORDER BY s.nazov ASC";
-
-        $stmt = $con->prepare($sql);
-        $stmt->execute($params);
-        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        $out = [];
-        foreach ($rows as $r) {
-            $uid = (int)$r['id_udalost'];
-            $out[$uid][] = [
-                'id' => (int)$r['id_skupina'],
-                'nazov' => (string)$r['nazov'],
-            ];
-        }
-
-        return $out;
     }
 }

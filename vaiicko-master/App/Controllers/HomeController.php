@@ -15,7 +15,7 @@ use Framework\Http\Responses\Response;
  *
  * @package App\Controllers
  */
-class HomeController extends BaseController
+class HomeController extends AppController
 {
     /**
      * Authorizes controller actions based on the specified action name.

@@ -8,7 +8,7 @@ use Framework\Core\BaseController;
 use Framework\Http\HttpException;
 use Framework\Http\Request;
 
-abstract class OsobaBaseController extends BaseController
+abstract class OsobaBaseController extends AppController
 {
     /**
      * Vráti PouzivatelIdentity alebo null.

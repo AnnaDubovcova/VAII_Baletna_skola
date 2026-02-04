@@ -199,10 +199,6 @@ abstract class BaseController
     }
 
 
-    protected function getActiveOsobaId(): ?int
-    {
-        $session = new Session();
-        return $session->get('active_osoba_id');
-    }
+
 
 }

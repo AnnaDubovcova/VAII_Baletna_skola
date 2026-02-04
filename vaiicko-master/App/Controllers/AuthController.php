@@ -17,7 +17,7 @@ use Framework\Http\Responses\ViewResponse;
  *
  * @package App\Controllers
  */
-class AuthController extends BaseController
+class AuthController extends AppController
 {
     /**
      * Redirects to the login page.
