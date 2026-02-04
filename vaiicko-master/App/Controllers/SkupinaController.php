@@ -148,4 +148,68 @@ class SkupinaController extends AdminController
         }
         $skupina->setPopis($popis === '' ? null : $popis);
     }
+
+    /**
+     * Správa členov skupiny.
+     */
+    public function members(Request $request): Response
+    {
+        $id = (int)$request->value('id_skupina');
+        $skupina = Skupina::getOne($id);
+
+        if ($skupina === null) {
+            throw new \Exception('Skupina neexistuje.');
+        }
+
+        $obdobieId = $this->getActiveObdobieId();
+        if ($obdobieId === null) {
+            throw new \Exception('Nie je zvolené aktívne obdobie.');
+        }
+
+        $q = trim((string)$request->value('q'));
+
+        return $this->html([
+            'skupina'   => $skupina,
+            'members'   => $skupina->getMembers(),
+            'candidates'=> $skupina->getCandidateOsoby($obdobieId, $q),
+            'q'         => $q,
+        ]);
+    }
+
+    /**
+     * Pridanie člena (PRG).
+     */
+    public function addMember(Request $request): Response
+    {
+        $idSkupina = (int)$request->value('id_skupina');
+        $idOsoba   = (int)$request->value('id_osoba');
+
+        $skupina = Skupina::getOne($idSkupina);
+        if ($skupina) {
+            $skupina->addOsoba($idOsoba);
+        }
+
+        return $this->redirect($this->url('skupina.members', [
+            'id_skupina' => $idSkupina
+        ]));
+    }
+
+    /**
+     * Odobratie člena (PRG).
+     */
+    public function removeMember(Request $request): Response
+    {
+        $idSkupina = (int)$request->value('id_skupina');
+        $idOsoba   = (int)$request->value('id_osoba');
+
+        $skupina = Skupina::getOne($idSkupina);
+        if ($skupina) {
+            $skupina->removeOsoba($idOsoba);
+        }
+
+        return $this->redirect($this->url('skupina.members', [
+            'id_skupina' => $idSkupina
+        ]));
+    }
 }
+

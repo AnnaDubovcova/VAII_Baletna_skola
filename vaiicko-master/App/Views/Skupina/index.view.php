@@ -38,12 +38,26 @@
                     </td>
                     <td><?= nl2br(htmlspecialchars($skupina->getPopis() ?? '')) ?></td>
                     <td class="text-end">
-                        <a href="<?= $link->url('skupina.edit', ['id_skupina' => $skupina->getId()]) ?>"
-                           class="btn btn-sm btn-outline-secondary">
+
+                        <!-- 👥 ČLENOVIA SKUPINY -->
+                        <a href="<?= $link->url('skupina.members', [
+                                'id_skupina' => $skupina->getId()
+                        ]) ?>"
+                           class="btn btn-sm btn-outline-primary me-1">
+                            Členovia
+                        </a>
+
+                        <!-- ✏️ UPRAVIŤ -->
+                        <a href="<?= $link->url('skupina.edit', [
+                                'id_skupina' => $skupina->getId()
+                        ]) ?>"
+                           class="btn btn-sm btn-outline-secondary me-1">
                             Upraviť
                         </a>
 
-                        <form action="<?= $link->url('skupina.delete') ?>" method="post"
+                        <!-- 🗑️ ZMAZAŤ -->
+                        <form action="<?= $link->url('skupina.delete') ?>"
+                              method="post"
                               class="d-inline-block"
                               onsubmit="return confirm('Naozaj chceš zmazať túto skupinu?');">
                             <input type="hidden" name="id_skupina" value="<?= (int)$skupina->getId() ?>">
@@ -51,6 +65,7 @@
                                 Zmazať
                             </button>
                         </form>
+
                     </td>
                 </tr>
             <?php } ?>
