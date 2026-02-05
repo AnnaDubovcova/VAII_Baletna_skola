@@ -141,8 +141,11 @@
 
                     <?php if ($user->isLoggedIn() && !$user->isAdmin()): ?>
                         <li class="nav-item"><a class="nav-link" href="<?= $link->url('osoba.index') ?>">Moje osoby</a></li>
+                        <li class="nav-item"><a class="nav-link" href="<?= $link->url('skupinyUser.index') ?>">Skupiny</a></li>
                         <li class="nav-item"><a class="nav-link" href="<?= $link->url('kurzyUser.index') ?>">Kurzy</a></li>
                         <li class="nav-item"><a class="nav-link" href="<?= $link->url('prihlaska.index') ?>">Moje prihlášky</a></li>
+
+
                     <?php endif; ?>
 
                 </ul>

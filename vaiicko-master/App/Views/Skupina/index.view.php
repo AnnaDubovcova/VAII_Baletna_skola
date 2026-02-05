@@ -29,7 +29,13 @@
             <tbody>
             <?php foreach ($skupiny as $skupina) { ?>
                 <tr>
-                    <td><?= htmlspecialchars($skupina->getNazov() ?? '') ?></td>
+                    <td><a href="<?= $link->url('skupina.show', [
+                                'id_skupina' => $s->getId(),
+                                'return_to' => $_SERVER['REQUEST_URI'] ?? $link->url('skupinyUser.index')
+                        ]) ?>">
+                            <?= htmlspecialchars((string)$s->getNazov()) ?>
+                        </a>
+                    </td>
                     <td>
                         <?php
                         $idObdobie = $skupina->getIdObdobie();

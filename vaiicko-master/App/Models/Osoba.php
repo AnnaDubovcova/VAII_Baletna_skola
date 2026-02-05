@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Framework\Core\Model;
+use Framework\DB\Connection;
 
 class Osoba extends Model
 {
@@ -136,5 +137,31 @@ class Osoba extends Model
     public function setZastupcaTelefon(?string $zastupca_telefon): void
     {
         $this->zastupca_telefon = $zastupca_telefon;
+    }
+
+    /**
+     * Skupiny, v ktorých je osoba v zadanom období.
+     *
+     * @return Skupina[]  (ORM modely)
+     */
+    public function getSkupiny(int $idObdobie): array
+    {
+        $con = Connection::getInstance();
+
+        $stmt = $con->prepare(
+            'SELECT s.*
+             FROM skupina s
+             JOIN osoba_skupina os ON os.id_skupina = s.id_skupina
+             WHERE os.id_osoba = :osoba
+               AND s.id_obdobie = :obdobie
+             ORDER BY s.nazov ASC'
+        );
+
+        $stmt->execute([
+            'osoba' => (int)$this->getId(),
+            'obdobie' => (int)$idObdobie,
+        ]);
+
+        return $stmt->fetchAll(\PDO::FETCH_CLASS, Skupina::class);
     }
 }
