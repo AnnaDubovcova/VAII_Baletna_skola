@@ -79,24 +79,25 @@
                             <i class="bi bi-bell" style="font-size: 1.3rem;"></i>
                         </a>
 
-                        <!-- Admin obdobie selector -->
+                        <!-- obdobie selector -->
 
+                        <?php $ctxData = $ctx ?? []; ?>
+                        <?php if (!empty($ctxData['obdobia'])): ?>
+                            <form method="post" action="<?= $link->url('context.setActiveObdobie') ?>" class="me-3">
+                                <input type="hidden" name="return_url"
+                                       value="<?= htmlspecialchars($_SERVER['REQUEST_URI'] ?? $link->url('home.index')) ?>">
 
-                        <?php if ($user->isAdmin()): ?>
-                            <?php $ctxData = $ctx ?? []; ?>
-                            <?php if (!empty($ctxData['obdobia'])): ?>
-                                <form method="post" action="<?= $link->url('obdobie.setActive') ?>" class="me-3">
-                                    <select name="id_obdobie" class="form-select form-select-sm" onchange="this.form.submit()">
-                                        <?php foreach ($ctxData['obdobia'] as $o): ?>
-                                            <option value="<?= (int)$o->getId() ?>"
-                                                    <?= ((int)$o->getId() === (int)($ctxData['activeObdobieId'] ?? 0)) ? 'selected' : '' ?>>
-                                                <?= htmlspecialchars((string)$o->getNazov()) ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </form>
-                            <?php endif; ?>
+                                <select name="id_obdobie" class="form-select form-select-sm" onchange="this.form.submit()">
+                                    <?php foreach ($ctxData['obdobia'] as $o): ?>
+                                        <option value="<?= (int)$o->getId() ?>"
+                                                <?= ((int)$o->getId() === (int)($ctxData['activeObdobieId'] ?? 0)) ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars((string)$o->getNazov()) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </form>
                         <?php endif; ?>
+
 
 
                         <span class="navbar-text me-3">Prihlásený: <b><?= htmlspecialchars($user->getName()) ?></b></span>

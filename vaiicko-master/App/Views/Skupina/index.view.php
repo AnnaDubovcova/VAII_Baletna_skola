@@ -39,7 +39,7 @@
                     <td><?= nl2br(htmlspecialchars($skupina->getPopis() ?? '')) ?></td>
                     <td class="text-end">
 
-                        <!-- 👥 ČLENOVIA SKUPINY -->
+                        <!-- ČLENOVIA SKUPINY -->
                         <a href="<?= $link->url('skupina.members', [
                                 'id_skupina' => $skupina->getId()
                         ]) ?>"
@@ -47,7 +47,7 @@
                             Členovia
                         </a>
 
-                        <!-- ✏️ UPRAVIŤ -->
+                        <!--UPRAVIŤ -->
                         <a href="<?= $link->url('skupina.edit', [
                                 'id_skupina' => $skupina->getId()
                         ]) ?>"
@@ -55,7 +55,7 @@
                             Upraviť
                         </a>
 
-                        <!-- 🗑️ ZMAZAŤ -->
+                        <!-- ZMAZAŤ -->
                         <form action="<?= $link->url('skupina.delete') ?>"
                               method="post"
                               class="d-inline-block"

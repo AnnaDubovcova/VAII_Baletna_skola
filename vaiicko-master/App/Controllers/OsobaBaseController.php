@@ -2,34 +2,13 @@
 
 namespace App\Controllers;
 
-use App\Auth\PouzivatelIdentity;
 use App\Models\Osoba;
-use Framework\Core\BaseController;
 use Framework\Http\HttpException;
 use Framework\Http\Request;
 
 abstract class OsobaBaseController extends AppController
 {
-    /**
-     * Vráti PouzivatelIdentity alebo null.
-     */
-    protected function identityOrNull(): ?PouzivatelIdentity
-    {
-        $identity = $this->user->getIdentity();
-        return ($identity instanceof PouzivatelIdentity) ? $identity : null;
-    }
 
-    /**
-     * Vráti PouzivatelIdentity, inak 401.
-     */
-    protected function identity(): PouzivatelIdentity
-    {
-        $identity = $this->identityOrNull();
-        if ($identity === null) {
-            throw new HttpException(401, 'Používateľ nie je prihlásený.');
-        }
-        return $identity;
-    }
 
     /**
      * OsobaController:
