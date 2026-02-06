@@ -13,13 +13,20 @@ class SkupinaController extends SkupinaBaseController
 {
     public function index(Request $request): Response
     {
-        $skupiny = Skupina::getAll();
-        $obdobia = Obdobie::getAll();
+        $activeObdobieId = $this->requireActiveObdobieId();
 
-        // Pomocná mapa: id_obdobie => názov obdobia (aby sa vo view nevolalo getOne() v cykle)
+        $skupiny = Skupina::getAll(
+            'id_obdobie = :o',
+            ['o' => $activeObdobieId],
+            'nazov ASC'
+        );
+
+        // Mapa období (na názvy) – stačí len aktívne obdobie, ale môžeš nechať aj všetky
+        $obdobia = Obdobie::getAll('1=1', [], 'datum_od DESC');
+
         $obdobiaMap = [];
         foreach ($obdobia as $o) {
-            $obdobiaMap[$o->getId()] = $o->getNazov();
+            $obdobiaMap[(int)$o->getId()] = (string)$o->getNazov();
         }
 
         return $this->html([
@@ -27,6 +34,7 @@ class SkupinaController extends SkupinaBaseController
             'obdobiaMap' => $obdobiaMap,
         ]);
     }
+
 
     public function create(Request $request): Response
     {

@@ -13,19 +13,25 @@ class KurzController extends AdminController
 {
     public function index(Request $request): Response
     {
-        $kurzy = Kurz::getAll();
-        $obdobia = Obdobie::getAll();
-        $typy = TypKurzu::getAll();
+        $activeObdobieId = $this->requireActiveObdobieId();
 
-        // Mapa ID -> názov, aby sa vo view nerobili DB dotazy v cykle
+        $kurzy = Kurz::getAll(
+            'id_obdobie = :o',
+            ['o' => $activeObdobieId],
+            'nazov ASC'
+        );
+
+        $obdobia = Obdobie::getAll('1=1', [], 'datum_od DESC');
+        $typy = TypKurzu::getAll('1=1', [], 'nazov ASC');
+
         $obdobiaMap = [];
         foreach ($obdobia as $o) {
-            $obdobiaMap[$o->getId()] = $o->getNazov();
+            $obdobiaMap[(int)$o->getId()] = (string)$o->getNazov();
         }
 
         $typyMap = [];
         foreach ($typy as $t) {
-            $typyMap[$t->getId()] = $t->getNazov();
+            $typyMap[(int)$t->getId()] = (string)$t->getNazov();
         }
 
         return $this->html([
@@ -34,6 +40,7 @@ class KurzController extends AdminController
             'typyMap' => $typyMap,
         ]);
     }
+
 
     public function create(Request $request): Response
     {

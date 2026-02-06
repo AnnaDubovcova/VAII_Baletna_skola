@@ -84,6 +84,13 @@ abstract class AppController extends BaseController
         (new Session())->set('active_obdobie_id', $id);
     }
 
+    protected function requireActiveObdobieId(): int
+    {
+        $id = $this->getActiveObdobieId();
+        if ($id === null) throw new \Exception('Nie je zvolené aktívne obdobie.');
+        return $id;
+    }
+
 
     protected function html(array $data = [], string $viewName = null): ViewResponse
     {

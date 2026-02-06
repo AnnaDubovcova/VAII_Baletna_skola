@@ -26,6 +26,8 @@ class AdminController extends AppController
 
 
 
+
+
     protected function html(array $data = [], string $viewName = null): ViewResponse
     {
         $activeId = $this->getActiveObdobieId();
