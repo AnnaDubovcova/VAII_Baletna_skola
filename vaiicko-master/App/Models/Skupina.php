@@ -107,27 +107,40 @@ class Skupina extends Model
      * - ešte nie sú v skupine
      * - voliteľné vyhľadávanie
      */
-    public function getCandidateOsoby(int $idObdobie, ?string $q = null): array
+    /**
+     * Kandidáti na pridanie do skupiny:
+     * - majú schválenú prihlášku
+     * - kurz patrí do obdobia skupiny
+     * - (voliteľne) len pre konkrétny kurz
+     * - ešte nie sú v skupine
+     * - voliteľné vyhľadávanie
+     */
+    public function getCandidateOsoby(int $idObdobie, ?string $q = null, ?int $idKurz = null): array
     {
         $sql = '
-            SELECT DISTINCT o.*
-            FROM osoba o
-            JOIN prihlaska_kurz pk ON pk.id_osoba = o.id_osoba
-            JOIN kurz k ON k.id_kurz = pk.id_kurz
-            WHERE
-                k.id_obdobie = :o
-                AND pk.stav = \'schvalena\'
-                AND o.id_osoba NOT IN (
-                    SELECT id_osoba
-                    FROM osoba_skupina
-                    WHERE id_skupina = :s
-                )
-        ';
+        SELECT DISTINCT o.*
+        FROM osoba o
+        JOIN prihlaska_kurz pk ON pk.id_osoba = o.id_osoba
+        JOIN kurz k ON k.id_kurz = pk.id_kurz
+        WHERE
+            k.id_obdobie = :o
+            AND pk.stav = \'schvalena\'
+            AND o.id_osoba NOT IN (
+                SELECT id_osoba
+                FROM osoba_skupina
+                WHERE id_skupina = :s
+            )
+    ';
 
         $params = [
             'o' => $idObdobie,
             's' => $this->getId(),
         ];
+
+        if ($idKurz !== null && $idKurz > 0) {
+            $sql .= ' AND k.id_kurz = :k';
+            $params['k'] = $idKurz;
+        }
 
         if ($q !== null && $q !== '') {
             $sql .= ' AND (o.meno LIKE :q OR o.priezvisko LIKE :q)';
@@ -142,6 +155,7 @@ class Skupina extends Model
 
         return $stmt->fetchAll(\PDO::FETCH_CLASS, Osoba::class);
     }
+
 
     /**
      * Pridanie osoby do skupiny.
@@ -172,4 +186,35 @@ class Skupina extends Model
             's' => $this->getId(),
         ]);
     }
+
+    public function isCandidateOsoba(int $idObdobie, int $idOsoba): bool
+    {
+        $sql = '
+        SELECT 1
+        FROM osoba o
+        JOIN prihlaska_kurz pk ON pk.id_osoba = o.id_osoba
+        JOIN kurz k ON k.id_kurz = pk.id_kurz
+        WHERE
+            o.id_osoba = :osoba
+            AND k.id_obdobie = :obdobie
+            AND pk.stav = \'schvalena\'
+            AND NOT EXISTS (
+                SELECT 1
+                FROM osoba_skupina osk
+                WHERE osk.id_skupina = :skupina AND osk.id_osoba = :osoba
+            )
+        LIMIT 1
+    ';
+
+        $con = Connection::getInstance();
+        $stmt = $con->prepare($sql);
+        $stmt->execute([
+            'osoba' => $idOsoba,
+            'obdobie' => $idObdobie,
+            'skupina' => (int)$this->getId(),
+        ]);
+
+        return (bool)$stmt->fetchColumn();
+    }
+
 }

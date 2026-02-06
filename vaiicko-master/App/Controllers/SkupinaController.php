@@ -4,9 +4,10 @@ namespace App\Controllers;
 
 use App\Models\Obdobie;
 use App\Models\Skupina;
-use Framework\Core\BaseController;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
+use App\Models\Kurz;
+
 
 class SkupinaController extends SkupinaBaseController
 {
@@ -203,55 +204,93 @@ class SkupinaController extends SkupinaBaseController
             throw new \Exception('Skupina neexistuje.');
         }
 
-        $obdobieId = $this->getActiveObdobieId();
-        if ($obdobieId === null) {
-            throw new \Exception('Nie je zvolené aktívne obdobie.');
+        $obdobieId = (int)$skupina->getIdObdobie();
+        if ($obdobieId <= 0) {
+            throw new \Exception('Skupina nemá platné obdobie.');
         }
 
         $q = trim((string)$request->value('q'));
+        $idKurz = (int)$request->value('id_kurz');
+        if ($idKurz <= 0) $idKurz = null;
+
+        // kurzy len v období skupiny (na filter)
+        $kurzy = Kurz::getAll(
+            'id_obdobie = :o',
+            ['o' => $obdobieId],
+            'nazov ASC'
+        );
 
         return $this->html([
-            'skupina'   => $skupina,
-            'members'   => $skupina->getMembers(),
-            'candidates'=> $skupina->getCandidateOsoby($obdobieId, $q),
-            'q'         => $q,
+            'skupina'    => $skupina,
+            'members'    => $skupina->getMembers(),
+            'candidates' => $skupina->getCandidateOsoby($obdobieId, $q, $idKurz),
+            'q'          => $q,
+            'kurzy'      => $kurzy,
+            'idKurz'     => $idKurz,
         ]);
     }
 
-    /**
-     * Pridanie člena (PRG).
-     */
+
     public function addMember(Request $request): Response
     {
         $idSkupina = (int)$request->value('id_skupina');
         $idOsoba   = (int)$request->value('id_osoba');
+        $q         = trim((string)$request->value('q'));
+
+        $idKurz = (int)$request->value('id_kurz');
+        if ($idKurz <= 0) $idKurz = null;
+
 
         $skupina = Skupina::getOne($idSkupina);
-        if ($skupina) {
-            $skupina->addOsoba($idOsoba);
+        if ($skupina === null) {
+            throw new \Exception('Skupina neexistuje.');
         }
 
+        if ($idOsoba <= 0) {
+            throw new \Exception('Neplatná osoba.');
+        }
+
+        // Voliteľné, ale odporúčané: povoliť pridať len kandidáta podľa obdobia skupiny
+        $obdobieId = (int)$skupina->getIdObdobie();
+        if ($obdobieId <= 0) {
+            throw new \Exception('Skupina nemá platné obdobie.');
+        }
+
+        if (!$skupina->isCandidateOsoba($obdobieId, $idOsoba)) {
+            throw new \Exception('Osobu nie je možné pridať do skupiny (nespĺňa podmienky pre obdobie).');
+        }
+
+        $skupina->addOsoba($idOsoba);
+
         return $this->redirect($this->url('skupina.members', [
-            'id_skupina' => $idSkupina
+            'id_skupina' => $idSkupina,
+            'q' => $q,
+            'id_kurz' => $idKurz,
         ]));
     }
 
-    /**
-     * Odobratie člena (PRG).
-     */
     public function removeMember(Request $request): Response
     {
         $idSkupina = (int)$request->value('id_skupina');
         $idOsoba   = (int)$request->value('id_osoba');
+        $q         = trim((string)$request->value('q'));
 
         $skupina = Skupina::getOne($idSkupina);
-        if ($skupina) {
-            $skupina->removeOsoba($idOsoba);
+        if ($skupina === null) {
+            throw new \Exception('Skupina neexistuje.');
         }
 
+        if ($idOsoba <= 0) {
+            throw new \Exception('Neplatná osoba.');
+        }
+
+        $skupina->removeOsoba($idOsoba);
+
         return $this->redirect($this->url('skupina.members', [
-            'id_skupina' => $idSkupina
+            'id_skupina' => $idSkupina,
+            'q' => $q,
         ]));
     }
+
 }
 

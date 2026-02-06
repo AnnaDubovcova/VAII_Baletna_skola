@@ -36,6 +36,7 @@
     <div class="card-header">
         Členovia skupiny
     </div>
+
     <div class="card-body">
         <?php if (empty($members)): ?>
             <div class="text-muted">Skupina zatiaľ nemá žiadnych členov.</div>
@@ -44,14 +45,25 @@
                 <thead>
                 <tr>
                     <th>Meno</th>
-                    <th>Dátum narodenia</th>
                 </tr>
                 </thead>
                 <tbody>
                 <?php foreach ($members as $m): ?>
                     <tr>
-                        <td><?= htmlspecialchars((string)$m->getMeno() . ' ' . (string)$m->getPriezvisko()) ?></td>
-                        <td><?= htmlspecialchars((string)$m->getDatumNarodenia()) ?></td>
+                        <td>
+                            <?php $fullName = trim((string)$m->getMeno() . ' ' . (string)$m->getPriezvisko()); ?>
+
+                            <?php if ($user->isAdmin()): ?>
+                                <a href="<?= $link->url('osoba.show', [
+                                        'id_osoba' => $m->getId(),
+                                        'return_to' => $_SERVER['REQUEST_URI'] ?? $link->url('skupina.index')
+                                ]) ?>">
+                                    <?= htmlspecialchars($fullName) ?>
+                                </a>
+                            <?php else: ?>
+                                <?= htmlspecialchars($fullName) ?>
+                            <?php endif; ?>
+                        </td>
                     </tr>
                 <?php endforeach; ?>
                 </tbody>
@@ -59,6 +71,7 @@
         <?php endif; ?>
     </div>
 </div>
+
 
 <div class="d-flex justify-content-between">
     <?php if (!empty($returnTo)): ?>
