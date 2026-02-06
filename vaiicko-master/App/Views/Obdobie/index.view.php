@@ -13,7 +13,7 @@
 
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1>Obdobia kurzov</h1>
+    <h1>Obdobia</h1>
     <a href="<?= $link->url('obdobie.create') ?>" class="btn btn-primary">
         + Pridať nové obdobie
     </a>

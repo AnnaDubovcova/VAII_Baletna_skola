@@ -52,7 +52,7 @@
                         <!-- DETAIL SKUPINY -->
                         <a href="<?= $link->url('skupina.show', [
                                 'id_skupina' => $skupina->getId(),
-                                'return_to' => $_SERVER['REQUEST_URI'] ?? $link->url('skupinyUser.index')
+                                'return_to' => $_SERVER['REQUEST_URI'] ?? $link->url('skupina.index')
                         ]) ?>"
                            class="btn btn-sm btn-outline-primary me-1">
                             Detail
