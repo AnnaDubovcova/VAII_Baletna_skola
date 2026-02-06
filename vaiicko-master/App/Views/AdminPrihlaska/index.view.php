@@ -2,8 +2,6 @@
 /** @var \Framework\Support\LinkGenerator $link */
 /** @var \App\Models\PrihlaskaKurz[] $prihlasky */
 /** @var string $stav */
-/** @var int $idObdobie */
-/** @var \App\Models\Obdobie[] $obdobia */
 /** @var array<int, \App\Models\Kurz> $kurzById */
 /** @var array<int, \App\Models\Osoba> $osobaById */
 ?>
@@ -25,17 +23,21 @@
         </select>
     </div>
 
-    <div class="col-12 col-md-6">
-        <label class="form-label">Obdobie</label>
-        <select id="filter-obdobie" class="form-select" name="id_obdobie">
-            <option value="0" <?= $idObdobie === 0 ? 'selected' : '' ?>>Všetky</option>
-            <?php foreach ($obdobia as $o): ?>
-                <option value="<?= (int)$o->getId() ?>" <?= $idObdobie === (int)$o->getId() ? 'selected' : '' ?>>
-                    <?= htmlspecialchars((string)$o->getNazov()) ?>
+    <div class="col-12 col-md-3">
+        <label class="form-label">Kurz</label>
+        <select id="filter-kurz" class="form-select" name="id_kurz">
+            <option value="">Všetky</option>
+            <?php foreach (($kurzy ?? []) as $k): ?>
+                <option value="<?= (int)$k->getId() ?>"
+                        <?= ((int)($idKurz ?? 0) === (int)$k->getId()) ? 'selected' : '' ?>>
+                    <?= htmlspecialchars((string)$k->getNazov()) ?>
                 </option>
             <?php endforeach; ?>
         </select>
     </div>
+
+
+
 
     <div class="col-12 col-md-2 d-flex align-items-end">
         <button class="btn btn-primary w-100" type="submit">Filtrovať</button>
@@ -88,7 +90,6 @@
                                'id' => $pid,
                                'return_to' => $link->url('adminPrihlaska.index', [
                                        'stav' => $stav,
-                                       'id_obdobie' => $idObdobie
                                ])
                        ]) ?>">
                         Detail
@@ -101,7 +102,6 @@
                                    'ajax' => 1,
                                    'return_to' => $link->url('adminPrihlaska.index', [
                                            'stav' => $stav,
-                                           'id_obdobie' => $idObdobie
                                    ])
                            ]) ?>">
                             Schváliť
@@ -113,7 +113,6 @@
                                    'ajax' => 1,
                                    'return_to' => $link->url('adminPrihlaska.index', [
                                            'stav' => $stav,
-                                           'id_obdobie' => $idObdobie
                                    ])
                            ]) ?>">
                             Zamietnuť

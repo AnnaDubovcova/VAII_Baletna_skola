@@ -120,60 +120,112 @@ class AdminPrihlaskaController extends AdminController
     {
         $stav = trim((string)$request->value('stav'));
 
-        // Obdobie už nie je filter z UI – berie sa z aktívneho obdobia (session)
+        // aktívne obdobie (session)
         $idObdobie = (int)$this->getActiveObdobieId();
         if ($idObdobie <= 0) {
-            $idObdobie = $this->requireActiveObdobieId(); // ak používaš túto metódu
+            $idObdobie = (int)$this->requireActiveObdobieId();
+        }
+
+        // filter kurz
+        $idKurz = (int)$request->value('id_kurz');
+        if ($idKurz <= 0) {
+            $idKurz = 0; // 0 = "všetky"
+        }
+
+        // kurzy v aktívnom období (použijeme aj pre dropdown vo view)
+        $kurzyVObdobi = Kurz::getAll(
+            'id_obdobie = :o',
+            ['o' => $idObdobie],
+            'nazov ASC'
+        );
+
+        $kurzIdsVObdobi = [];
+        foreach ($kurzyVObdobi as $k) {
+            $kurzIdsVObdobi[] = (int)$k->getId();
         }
 
         $where = [];
         $params = [];
 
+        // stav filter
         if ($stav !== '') {
             $where[] = 'stav = :stav';
             $params['stav'] = $stav;
         }
 
-        // filter podľa obdobia cez kurzy v aktívnom období
-        $kurzyVObdobi = Kurz::getAll('id_obdobie = :o', ['o' => $idObdobie]);
-
-        $ids = [];
-        foreach ($kurzyVObdobi as $kk) {
-            $ids[] = (int)$kk->getId();
-        }
-
-        if (empty($ids)) {
+        // základ: len prihlášky na kurzy v aktívnom období
+        if (empty($kurzIdsVObdobi)) {
             $where[] = '1=0';
         } else {
-            $ph = [];
-            foreach ($ids as $i => $kid) {
-                $key = 'kid' . $i;
-                $ph[] = ':' . $key;
-                $params[$key] = $kid;
+            // ak je vybraný konkrétny kurz, musí patriť do aktívneho obdobia
+            if ($idKurz > 0) {
+                if (!in_array($idKurz, $kurzIdsVObdobi, true)) {
+                    $where[] = '1=0'; // nepovolený kurz mimo obdobia
+                } else {
+                    $where[] = 'id_kurz = :id_kurz';
+                    $params['id_kurz'] = $idKurz;
+                }
+            } else {
+                // všetky kurzy v období
+                $ph = [];
+                foreach ($kurzIdsVObdobi as $i => $kid) {
+                    $key = 'kid' . $i;
+                    $ph[] = ':' . $key;
+                    $params[$key] = $kid;
+                }
+                $where[] = 'id_kurz IN (' . implode(',', $ph) . ')';
             }
-            $where[] = 'id_kurz IN (' . implode(',', $ph) . ')';
         }
 
         $cond = empty($where) ? '1=1' : implode(' AND ', $where);
 
         $prihlasky = PrihlaskaKurz::getAll($cond, $params, 'created_at DESC');
 
-        // Mapy pre zobrazenie názvov
-        // (ponechávam štruktúru ako máš – môžeš optimalizovať neskôr)
-        $kurzy = Kurz::getAll('1=1', [], 'nazov ASC');
-        $kurzById = [];
-        foreach ($kurzy as $k) {
-            $kurzById[(int)$k->getId()] = $k;
+        // --- optimalizácia: mapy len pre ID, ktoré reálne potrebuješ ---
+        $osobaIds = [];
+        $kurzIds = [];
+        foreach ($prihlasky as $p) {
+            $osobaIds[] = (int)$p->getIdOsoba();
+            $kurzIds[]  = (int)$p->getIdKurz();
         }
+        $osobaIds = array_values(array_unique($osobaIds));
+        $kurzIds  = array_values(array_unique($kurzIds));
 
-        $osoby = Osoba::getAll('1=1');
         $osobaById = [];
-        foreach ($osoby as $o) {
-            $osobaById[(int)$o->getId()] = $o;
+        if (!empty($osobaIds)) {
+            $ph = [];
+            $p = [];
+            foreach ($osobaIds as $i => $oid) {
+                $k = 'o' . $i;
+                $ph[] = ':' . $k;
+                $p[$k] = $oid;
+            }
+            $osoby = Osoba::getAll('id_osoba IN (' . implode(',', $ph) . ')', $p);
+            foreach ($osoby as $o) {
+                $osobaById[(int)$o->getId()] = $o;
+            }
         }
 
-        // obdobia do filtra už netreba (UI filter rušíme)
-        // $obdobia = Obdobie::getAll('1=1', [], 'datum_od DESC');
+        $kurzById = [];
+        if (!empty($kurzIds)) {
+            $ph = [];
+            $p = [];
+            foreach ($kurzIds as $i => $kid) {
+                $k = 'k' . $i;
+                $ph[] = ':' . $k;
+                $p[$k] = $kid;
+            }
+            $kurzy = Kurz::getAll('id_kurz IN (' . implode(',', $ph) . ')', $p);
+            foreach ($kurzy as $k) {
+                $kurzById[(int)$k->getId()] = $k;
+            }
+        }
+
+        // return_to musí zachovať filter stav + id_kurz
+        $returnTo = $this->url('adminPrihlaska.index', [
+            'stav' => $stav,
+            'id_kurz' => ($idKurz > 0 ? $idKurz : null),
+        ]);
 
         if ((int)$request->value('ajax') === 1) {
             $rows = [];
@@ -184,11 +236,6 @@ class AdminPrihlaskaController extends AdminController
 
                 $osoba = $osobaById[$oid] ?? null;
                 $kurz  = $kurzById[$kid] ?? null;
-
-                // Zachovaj parameter 'stav' v return_to (to bola tvoja požiadavka)
-                $returnTo = $this->url('adminPrihlaska.index', [
-                    'stav' => $stav,
-                ]);
 
                 $rows[] = [
                     'id' => (int)$p->getId(),
@@ -203,8 +250,9 @@ class AdminPrihlaskaController extends AdminController
                         'return_to' => $returnTo,
                     ]),
 
+                    // approve/reject: ak máš AJAX endpointy, nechaj; return_to netreba v URL, stačí v JS
                     'url_approve' => $this->url('adminPrihlaska.approve', ['id' => (int)$p->getId()]),
-                    'url_reject' => $this->url('adminPrihlaska.reject', ['id' => (int)$p->getId()]),
+                    'url_reject'  => $this->url('adminPrihlaska.reject',  ['id' => (int)$p->getId()]),
                 ];
             }
 
@@ -217,14 +265,13 @@ class AdminPrihlaskaController extends AdminController
         return $this->html([
             'prihlasky' => $prihlasky,
             'stav' => $stav,
-
-            // môžeš si nechať pre debug/heading v UI
-            'idObdobie' => $idObdobie,
-
+            'kurzy' => $kurzyVObdobi,  // do dropdownu vo view
+            'idKurz' => ($idKurz > 0 ? $idKurz : null),
             'kurzById' => $kurzById,
             'osobaById' => $osobaById,
         ]);
     }
+
 
 
     public function show(Request $request): Response
