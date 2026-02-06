@@ -29,12 +29,8 @@
             <tbody>
             <?php foreach ($skupiny as $skupina) { ?>
                 <tr>
-                    <td><a href="<?= $link->url('skupina.show', [
-                                'id_skupina' => $s->getId(),
-                                'return_to' => $_SERVER['REQUEST_URI'] ?? $link->url('skupinyUser.index')
-                        ]) ?>">
-                            <?= htmlspecialchars((string)$s->getNazov()) ?>
-                        </a>
+                    <td>
+                        <?= htmlspecialchars((string)$skupina->getNazov()) ?>
                     </td>
                     <td>
                         <?php
@@ -51,6 +47,15 @@
                         ]) ?>"
                            class="btn btn-sm btn-outline-primary me-1">
                             Členovia
+                        </a>
+
+                        <!-- DETAIL SKUPINY -->
+                        <a href="<?= $link->url('skupina.show', [
+                                'id_skupina' => $skupina->getId(),
+                                'return_to' => $_SERVER['REQUEST_URI'] ?? $link->url('skupinyUser.index')
+                        ]) ?>"
+                           class="btn btn-sm btn-outline-primary me-1">
+                            Detail
                         </a>
 
                         <!--UPRAVIŤ -->

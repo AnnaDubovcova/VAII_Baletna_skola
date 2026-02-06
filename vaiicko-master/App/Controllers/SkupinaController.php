@@ -8,7 +8,7 @@ use Framework\Core\BaseController;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
 
-class SkupinaController extends AdminController
+class SkupinaController extends SkupinaBaseController
 {
     public function index(Request $request): Response
     {
@@ -105,6 +105,48 @@ class SkupinaController extends AdminController
 
         return $this->redirect($this->url('skupina.index'));
     }
+
+    public function show(Request $request): Response
+    {
+        $id = (int)$request->value('id_skupina');
+        if ($id <= 0) {
+            throw new \Framework\Http\HttpException(400, 'Neplatné ID skupiny.');
+        }
+
+        $skupina = Skupina::getOne($id);
+        if ($skupina === null) {
+            throw new \Framework\Http\HttpException(404, 'Skupina nebola nájdená.');
+        }
+
+        $returnTo = (string)$request->value('return_to');
+
+        // USER: musí mať aktívnu osobu a tá musí byť členom skupiny
+        if (!$this->user->isAdmin()) {
+            $activeOsoba = $this->requireActiveOsoba();
+            if ($activeOsoba === null) {
+                return $this->redirect($this->url('osoba.index'));
+            }
+
+            if (!$skupina->hasMember((int)$activeOsoba->getId())) {
+                throw new \Framework\Http\HttpException(403, 'Nemáte oprávnenie zobraziť túto skupinu.');
+            }
+
+            return $this->html([
+                'skupina' => $skupina,
+                'members' => $skupina->getMembers(),
+                'activeOsoba' => $activeOsoba,
+                'returnTo' => $returnTo,
+            ]);
+        }
+
+        // ADMIN
+        return $this->html([
+            'skupina' => $skupina,
+            'members' => $skupina->getMembers(),
+            'returnTo' => $returnTo,
+        ]);
+    }
+
 
     /**
      * Spoločné naplnenie modelu + server-side validácia

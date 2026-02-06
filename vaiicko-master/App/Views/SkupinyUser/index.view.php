@@ -43,11 +43,12 @@
                     <?php $popis = trim((string)$s->getPopis()); ?>
                     <?= $popis !== '' ? nl2br(htmlspecialchars($popis)) : '<span class="text-muted">—</span>' ?>
                 </td>
-
                 <td class="text-end">
-                    <!-- pripravené na budúce "show" -->
-                    <a class="btn btn-sm btn-outline-secondary"
-                       href="<?= $link->url('skupina.show', ['id_skupina' => $s->getId()]) ?>">
+                    <a href="<?= $link->url('skupina.show', [
+                            'id_skupina' => $s->getId(),
+                            'return_to' => $_SERVER['REQUEST_URI'] ?? $link->url('skupinyUser.index')
+                    ]) ?>"
+                       class="btn btn-sm btn-outline-primary me-1">
                         Detail
                     </a>
                 </td>

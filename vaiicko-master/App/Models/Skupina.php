@@ -59,7 +59,32 @@ class Skupina extends Model
     }
 
     /**
-     * Členovia skupiny.
+     * Zistí, či daná osoba patrí do tejto skupiny.
+     */
+    public function hasMember(int $idOsoba): bool
+    {
+        $con = Connection::getInstance();
+
+        $stmt = $con->prepare(
+            'SELECT 1
+             FROM osoba_skupina
+             WHERE id_skupina = :s AND id_osoba = :o
+             LIMIT 1'
+        );
+
+        $stmt->execute([
+            's' => $this->getId(),
+            'o' => $idOsoba,
+        ]);
+
+        return (bool)$stmt->fetchColumn();
+    }
+
+
+    /*
+     * Vráti osoby patriace do tejto skupiny.
+     *
+     * @return Osoba[]
      */
     public function getMembers(): array
     {

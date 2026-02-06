@@ -1,6 +1,6 @@
 <?php
 /** @var \App\Models\Skupina $skupina */
-/** @var array $members */
+/** @var \App\Models\Osoba[] $members */
 /** @var \Framework\Support\LinkGenerator $link */
 /** @var \Framework\Auth\AppUser $user */
 /** @var \App\Models\Osoba|null $activeOsoba */
@@ -50,8 +50,8 @@
                 <tbody>
                 <?php foreach ($members as $m): ?>
                     <tr>
-                        <td><?= htmlspecialchars((string)$m['meno'] . ' ' . (string)$m['priezvisko']) ?></td>
-                        <td><?= htmlspecialchars((string)$m['datum_narodenia']) ?></td>
+                        <td><?= htmlspecialchars((string)$m->getMeno() . ' ' . (string)$m->getPriezvisko()) ?></td>
+                        <td><?= htmlspecialchars((string)$m->getDatumNarodenia()) ?></td>
                     </tr>
                 <?php endforeach; ?>
                 </tbody>
