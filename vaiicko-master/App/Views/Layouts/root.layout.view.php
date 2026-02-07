@@ -130,6 +130,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="<?= $link->url('prispevok.index') ?>">Oznamy</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?= $link->url('prispevokPublic.index') ?>">Verejné oznamy</a>
+                    </li>
 
 
                     <?php if ($user->isLoggedIn() && $user->isAdmin()): ?>
@@ -155,6 +158,7 @@
                         <li class="nav-item"><a class="nav-link" href="<?= $link->url('kurzyUser.index') ?>">Kurzy</a></li>
                         <li class="nav-item"><a class="nav-link" href="<?= $link->url('prihlaska.index') ?>">Moje prihlášky</a></li>
                         <li class="nav-item"><a class="nav-link" href="<?= $link->url('rozvrhUser.index') ?>">Rozvrh</a></li>
+                        <li class="nav-item"><a class="nav-link" href="<?= $link->url('prispevokUser.index') ?>">Prispevky</a></li>
 
 
 
