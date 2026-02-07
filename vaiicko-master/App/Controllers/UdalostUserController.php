@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\Udalost;
+use App\Models\UdalostUcast;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
 
@@ -39,9 +40,12 @@ class UdalostUserController extends UserBaseController
             return $this->redirect($this->url('rozvrhUser.index'));
         }
 
+        $stav = UdalostUcast::getStav($idUdalost, (int)$activeOsoba->getId()); // null|'ucast'|'neucast'
+
         return $this->html([
             'udalost' => $udalost,
             'activeOsoba' => $activeOsoba,
+            'stavUcasti' => $stav,
         ]);
     }
 }

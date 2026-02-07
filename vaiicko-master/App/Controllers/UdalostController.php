@@ -131,10 +131,15 @@ class UdalostController extends AdminController
 
         $returnTo = $this->getSafeReturnTo($request);
 
+        $lockedVyzaduje = $udalost->vyzadujeReakciu();
+
 
         if ($request->isPost()) {
             $selected = $this->selectedSkupinyFromRequest($request);
-            $this->fillAndValidate($request, $udalost, $selected, $errors);
+            $this->fillAndValidate($request, $udalost, $selected, $errors, false);
+
+            // zamkni späť hodnotu (aj keby niekto poslal v POST niečo iné)
+            $udalost->setVyzadujeReakciu($lockedVyzaduje);
 
             if (empty($errors)) {
                 $udalost->save();
@@ -273,7 +278,8 @@ class UdalostController extends AdminController
         Request $request,
         Udalost $udalost,
         array $selectedSkupiny,
-        array &$errors
+        array &$errors,
+        bool $allowVyzadujeReakciuChange = true
     ): void {
         $nazov = trim((string)$request->value('nazov'));
         $typ = trim((string)$request->value('typ'));
@@ -310,7 +316,14 @@ class UdalostController extends AdminController
         $udalost->setMiesto($miesto === '' ? null : $miesto);
         $udalost->setPopis($popis === '' ? null : $popis);
 
+        // Vyžaduje reakciu – len ak je povolené meniť (create áno, edit nie)
+        if ($allowVyzadujeReakciuChange) {
+            // checkbox pošle "1" alebo nič
+            $v = $request->value('vyzaduje_reakciu');
+            $udalost->setVyzadujeReakciu($v ? true : false);
+        }
     }
+
 
     private function toDbDateTime(string $datetimeLocal): string
     {

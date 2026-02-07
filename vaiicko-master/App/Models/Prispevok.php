@@ -51,17 +51,6 @@ class Prispevok extends Model
     public function getIdUdalost(): ?int { return $this->id_udalost; }
     public function setIdUdalost(?int $id): void { $this->id_udalost = $id; }
 
-    /**
-     * Verejné príspevky (bez loginu).
-     */
-    public static function getPublic(): array
-    {
-        return self::getAll(
-            'viditelnost = :v',
-            ['v' => 'verejny'],
-            'created_at DESC'
-        );
-    }
 
     public static function getAllPublic(): array
     {
@@ -75,30 +64,33 @@ class Prispevok extends Model
     public static function getAllForOsoba(int $idOsoba, int $idObdobie): array
     {
         $where = "
-        (viditelnost = 'verejny')
-        OR (viditelnost = 'obdobie' AND id_obdobie = :o)
-        OR (
-            viditelnost = 'skupina'
-            AND id_skupina IN (
-                SELECT os.id_skupina
-                FROM osoba_skupina os
-                WHERE os.id_osoba = :os
+            (viditelnost = 'verejny')
+            OR (viditelnost = 'obdobie' AND id_obdobie = :o)
+            OR (
+                viditelnost = 'skupina'
+                AND id_skupina IN (
+                    SELECT s.id_skupina
+                    FROM osoba_skupina os
+                    JOIN skupina s ON s.id_skupina = os.id_skupina
+                    WHERE os.id_osoba = :os
+                      AND s.id_obdobie = :o
+                )
             )
-        )
-        OR (
-            viditelnost = 'udalost'
-            AND id_udalost IN (
-                SELECT us.id_udalost
-                FROM udalost_skupina us
-                JOIN osoba_skupina os ON os.id_skupina = us.id_skupina
-                JOIN udalost u ON u.id_udalost = us.id_udalost
-                WHERE os.id_osoba = :os
-                  AND u.id_obdobie = :o
+            OR (
+                viditelnost = 'udalost'
+                AND id_udalost IN (
+                    SELECT us.id_udalost
+                    FROM udalost_skupina us
+                    JOIN osoba_skupina os ON os.id_skupina = us.id_skupina
+                    JOIN udalost u ON u.id_udalost = us.id_udalost
+                    WHERE os.id_osoba = :os
+                      AND u.id_obdobie = :o
+                )
             )
-        )
-    ";
+        ";
 
         return self::getAll($where, ['os' => $idOsoba, 'o' => $idObdobie], 'created_at DESC');
+
     }
 
 
@@ -118,30 +110,32 @@ class Prispevok extends Model
     public static function getOneForOsoba(int $idPrispevok, int $idOsoba, int $idObdobie): ?self
     {
         $where = "
-        id_prispevok = :id AND (
-            (viditelnost = 'verejny')
-            OR (viditelnost = 'obdobie' AND id_obdobie = :o)
+        id_prispevok = :id AND 
+                (viditelnost = 'verejny')
+                OR (viditelnost = 'obdobie' AND id_obdobie = :o)
             OR (
                 viditelnost = 'skupina'
                 AND id_skupina IN (
-                    SELECT os.id_skupina
+                SELECT s.id_skupina
                     FROM osoba_skupina os
+                    JOIN skupina s ON s.id_skupina = os.id_skupina
                     WHERE os.id_osoba = :os
+            AND s.id_obdobie = :o
                 )
             )
             OR (
                 viditelnost = 'udalost'
                 AND id_udalost IN (
-                    SELECT us.id_udalost
+                SELECT us.id_udalost
                     FROM udalost_skupina us
                     JOIN osoba_skupina os ON os.id_skupina = us.id_skupina
                     JOIN udalost u ON u.id_udalost = us.id_udalost
                     WHERE os.id_osoba = :os
-                      AND u.id_obdobie = :o
+            AND u.id_obdobie = :o
                 )
             )
-        )
-    ";
+        ";
+
 
         $rows = self::getAll(
             $where,

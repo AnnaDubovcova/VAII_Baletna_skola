@@ -127,6 +127,25 @@ $valPopis = (string)($udalost->getPopis() ?? '');
         </div>
     </div>
 
+    <?php if (!$isEdit): ?>
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" name="vyzaduje_reakciu" value="1"
+                    <?= $udalost->vyzadujeReakciu() ? 'checked' : '' ?>>
+            <label class="form-check-label">Vyžaduje reakciu účastníkov</label>
+        </div>
+    <?php else: ?>
+        <div class="mb-3">
+            <label class="form-label">Vyžaduje reakciu účastníkov</label>
+            <div class="form-control-plaintext">
+                <?= $udalost->vyzadujeReakciu() ? 'Áno' : 'Nie' ?>
+            </div>
+            <div class="form-text">
+                Po vytvorení udalosti sa toto nastavenie nedá meniť.
+            </div>
+        </div>
+    <?php endif; ?>
+
+
     <div class="card mb-3">
         <div class="card-body">
             <h5 class="card-title">Skupiny *</h5>

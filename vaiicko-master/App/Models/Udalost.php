@@ -19,6 +19,8 @@ class Udalost extends Model
 
     protected ?int $id_obdobie = null; // FK na obdobie, v ktorom sa udalost koná
 
+    protected ?int $vyzaduje_reakciu = 0;
+
     protected static function getPkColumnName(): string
     {
         return 'id_udalost';
@@ -62,6 +64,16 @@ class Udalost extends Model
 
 
     public function getCreatedAt(): ?string { return $this->created_at; }
+
+    public function vyzadujeReakciu(): bool
+    {
+        return (int)$this->vyzaduje_reakciu === 1;
+    }
+
+    public function setVyzadujeReakciu(bool $v): void
+    {
+        $this->vyzaduje_reakciu = $v ? 1 : 0;
+    }
 
 
     /*
@@ -132,6 +144,7 @@ class Udalost extends Model
                 u.koniec,
                 u.miesto,
                 u.popis,
+                u.vyzaduje_reakciu,
                 s.id_skupina,
                 s.nazov AS skupina_nazov
             FROM udalost u
@@ -217,6 +230,8 @@ class Udalost extends Model
             u.koniec,
             u.miesto,
             u.popis,
+            u.vyzaduje_reakciu,
+
             GROUP_CONCAT(s.nazov ORDER BY s.nazov SEPARATOR ', ') AS skupiny
         FROM udalost u
         JOIN udalost_skupina us ON us.id_udalost = u.id_udalost
