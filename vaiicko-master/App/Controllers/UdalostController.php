@@ -50,11 +50,16 @@ class UdalostController extends AdminController
 
         $skupiny = $this->getSkupinyForUdalost($id);
 
+        $returnTo = $this->getSafeReturnTo($request);
+
+
         return $this->html([
             'udalost' => $udalost,
             'skupiny' => $skupiny,
+            'returnTo' => $returnTo,
         ]);
     }
+
 
     /**
      * Vytvorenie novej udalosti – viazané na aktívne obdobie.
@@ -124,6 +129,8 @@ class UdalostController extends AdminController
 
         $selected = $udalost->getSkupinaIds();
 
+        $returnTo = $this->getSafeReturnTo($request);
+
 
         if ($request->isPost()) {
             $selected = $this->selectedSkupinyFromRequest($request);
@@ -134,6 +141,9 @@ class UdalostController extends AdminController
                 $udalost->syncSkupiny($selected);
 
 
+                if ($returnTo) {
+                    return $this->redirect($returnTo);
+                }
                 return $this->redirect($this->url('udalost.index'));
             }
         }
@@ -144,6 +154,7 @@ class UdalostController extends AdminController
             'skupiny' => $skupiny,
             'selectedSkupiny' => $selected,
             'formAction' => 'edit',
+            'returnTo' => $returnTo,
         ], 'form');
     }
 
@@ -159,10 +170,15 @@ class UdalostController extends AdminController
             throw new \Exception('Udalosť nenájdená.');
         }
 
+        $returnTo = $this->getSafeReturnTo($request);
+
         $udalost->syncSkupiny([]); // vymaže väzby
 
         $udalost->delete();
 
+        if ($returnTo) {
+            return $this->redirect($returnTo);
+        }
         return $this->redirect($this->url('udalost.index'));
     }
 
@@ -304,4 +320,30 @@ class UdalostController extends AdminController
         }
         return $s;
     }
+
+    private function getSafeReturnTo(Request $request): ?string
+    {
+        $returnTo = $request->value('return_to');
+
+        if (!is_string($returnTo)) {
+            return null;
+        }
+
+        $returnTo = trim($returnTo);
+        if ($returnTo === '') {
+            return null;
+        }
+
+        // blokuj externé URL (open redirect)
+        if (strpos($returnTo, '://') !== false) {
+            return null;
+        }
+        if (strpos($returnTo, '//') === 0) {
+            return null;
+        }
+
+        return $returnTo;
+    }
+
+
 }

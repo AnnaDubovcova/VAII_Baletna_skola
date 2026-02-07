@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Framework\Core\Model;
 use Framework\DB\Connection;
+use PDO;
 
 class Udalost extends Model
 {
@@ -113,5 +114,140 @@ class Udalost extends Model
             throw $e;
         }
     }
+
+
+    /**
+     * User: udalosti v týždni pre konkrétnu osobu (cez členstvo v skupinách).
+     */
+    public static function getWeekForOsoba(int $idOsoba, int $idObdobie, string $from, string $to): array
+    {
+        $con = Connection::getInstance();
+
+        $sql = "
+            SELECT
+                u.id_udalost,
+                u.nazov,
+                u.typ,
+                u.zaciatok,
+                u.koniec,
+                u.miesto,
+                u.popis,
+                s.id_skupina,
+                s.nazov AS skupina_nazov
+            FROM udalost u
+            JOIN udalost_skupina us ON us.id_udalost = u.id_udalost
+            JOIN skupina s ON s.id_skupina = us.id_skupina
+            JOIN osoba_skupina os ON os.id_skupina = s.id_skupina
+            WHERE
+                os.id_osoba = :id_osoba
+                AND u.id_obdobie = :id_obdobie
+                AND u.zaciatok >= :from_dt
+                AND u.zaciatok <  :to_dt
+            ORDER BY u.zaciatok ASC, s.nazov ASC
+        ";
+
+        $stmt = $con->prepare($sql);
+        $stmt->execute([
+            'id_osoba' => $idOsoba,
+            'id_obdobie' => $idObdobie,
+            'from_dt' => $from,
+            'to_dt' => $to,
+        ]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Admin: všetky udalosti v týždni v aktívnom období.
+     * (Skupiny pospájané do jedného textu pre pekný rozvrh.)
+     */
+    public static function getWeekForAdmin(int $idObdobie, string $from, string $to): array
+    {
+        $con = Connection::getInstance();
+
+        $sql = "
+            SELECT
+                u.id_udalost,
+                u.nazov,
+                u.typ,
+                u.zaciatok,
+                u.koniec,
+                u.miesto,
+                u.popis,
+                GROUP_CONCAT(s.nazov ORDER BY s.nazov SEPARATOR ', ') AS skupiny
+            FROM udalost u
+            LEFT JOIN udalost_skupina us ON us.id_udalost = u.id_udalost
+            LEFT JOIN skupina s ON s.id_skupina = us.id_skupina
+            WHERE
+                u.id_obdobie = :id_obdobie
+                AND u.zaciatok >= :from_dt
+                AND u.zaciatok <  :to_dt
+            GROUP BY
+                u.id_udalost,
+                u.nazov,
+                u.typ,
+                u.zaciatok,
+                u.koniec,
+                u.miesto,
+                u.popis
+            ORDER BY u.zaciatok ASC
+
+        ";
+
+        $stmt = $con->prepare($sql);
+        $stmt->execute([
+            'id_obdobie' => $idObdobie,
+            'from_dt' => $from,
+            'to_dt' => $to,
+        ]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public static function getOneForOsoba(int $idUdalost, int $idOsoba, int $idObdobie): ?array
+    {
+        $con = Connection::getInstance();
+
+        $sql = "
+        SELECT
+            u.id_udalost,
+            u.nazov,
+            u.typ,
+            u.zaciatok,
+            u.koniec,
+            u.miesto,
+            u.popis,
+            GROUP_CONCAT(s.nazov ORDER BY s.nazov SEPARATOR ', ') AS skupiny
+        FROM udalost u
+        JOIN udalost_skupina us ON us.id_udalost = u.id_udalost
+        JOIN skupina s ON s.id_skupina = us.id_skupina
+        JOIN osoba_skupina os ON os.id_skupina = s.id_skupina
+        WHERE
+            u.id_udalost = :id_udalost
+            AND os.id_osoba = :id_osoba
+            AND u.id_obdobie = :id_obdobie
+        GROUP BY
+            u.id_udalost,
+            u.nazov,
+            u.typ,
+            u.zaciatok,
+            u.koniec,
+            u.miesto,
+            u.popis
+        LIMIT 1
+    ";
+
+        $stmt = $con->prepare($sql);
+        $stmt->execute([
+            'id_udalost' => $idUdalost,
+            'id_osoba' => $idOsoba,
+            'id_obdobie' => $idObdobie,
+        ]);
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
+    }
+
+
 
 }

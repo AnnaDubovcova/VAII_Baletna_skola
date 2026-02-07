@@ -135,6 +135,8 @@
                         <li class="nav-item"><a class="nav-link" href="<?= $link->url('adminPrihlaska.index') ?>">Prihlášky</a></li>
                         <li class="nav-item"><a class="nav-link" href="<?= $link->url('skupina.index') ?>">Skupiny</a></li>
                         <li class="nav-item"><a class="nav-link" href="<?= $link->url('udalost.index') ?>">Udalosti</a></li>
+                        <li class="nav-item"><a class="nav-link" href="<?= $link->url('adminRozvrh.index') ?>">Rozvrh</a></li>
+
 
 
                     <?php endif; ?>
@@ -144,6 +146,8 @@
                         <li class="nav-item"><a class="nav-link" href="<?= $link->url('skupinyUser.index') ?>">Skupiny</a></li>
                         <li class="nav-item"><a class="nav-link" href="<?= $link->url('kurzyUser.index') ?>">Kurzy</a></li>
                         <li class="nav-item"><a class="nav-link" href="<?= $link->url('prihlaska.index') ?>">Moje prihlášky</a></li>
+                        <li class="nav-item"><a class="nav-link" href="<?= $link->url('rozvrhUser.index') ?>">Rozvrh</a></li>
+
 
 
                     <?php endif; ?>

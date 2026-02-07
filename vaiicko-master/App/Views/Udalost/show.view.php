@@ -7,7 +7,12 @@
 <h1 class="page-title">Detail udalosti</h1>
 
 <div class="mb-3 d-flex gap-2">
-    <a class="btn btn-sm btn-outline-secondary" href="<?= $link->url('udalost.index') ?>">Späť</a>
+    <a class="btn btn-outline-secondary"
+       href="<?= !empty($returnTo) ? htmlspecialchars($returnTo) : $link->url('udalost.index') ?>">
+        Späť
+    </a>
+
+
 
     <a class="btn btn-sm btn-outline-primary"
        href="<?= $link->url('udalost.edit', ['id_udalost' => (int)$udalost->getId()]) ?>">

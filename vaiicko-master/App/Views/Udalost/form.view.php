@@ -33,7 +33,7 @@ $valPopis = (string)($udalost->getPopis() ?? '');
 <h1 class="page-title"><?= htmlspecialchars($title) ?></h1>
 
 <div class="mb-3">
-    <a class="btn btn-sm btn-outline-secondary" href="<?= $link->url('udalost.index') ?>">Späť</a>
+    <a class="btn btn-sm btn-outline-secondary"  href="<?= !empty($returnTo) ? htmlspecialchars($returnTo) : $link->url('udalost.index') ?>">Späť</a>
 </div>
 
 <?php if (!empty($errors['global'])): ?>
@@ -41,6 +41,10 @@ $valPopis = (string)($udalost->getPopis() ?? '');
 <?php endif; ?>
 
 <form method="post" action="<?= $actionUrl ?>" class="needs-validation" novalidate>
+    <?php if (!empty($returnTo)): ?>
+        <input type="hidden" name="return_to" value="<?= htmlspecialchars($returnTo) ?>">
+    <?php endif; ?>
+
     <div class="card mb-3">
         <div class="card-body">
 
@@ -162,6 +166,6 @@ $valPopis = (string)($udalost->getPopis() ?? '');
         <button class="btn btn-primary" type="submit">
             <?= $isEdit ? 'Uložiť zmeny' : 'Vytvoriť udalosť' ?>
         </button>
-        <a class="btn btn-outline-secondary" href="<?= $link->url('udalost.index') ?>">Zrušiť</a>
+        <a class="btn btn-outline-secondary"  href="<?= !empty($returnTo) ? htmlspecialchars($returnTo) : $link->url('udalost.index') ?>">Zrušiť</a>
     </div>
 </form>
