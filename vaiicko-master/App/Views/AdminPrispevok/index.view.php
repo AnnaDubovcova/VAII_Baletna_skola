@@ -1,12 +1,59 @@
 <?php
 /** @var \Framework\Support\LinkGenerator $link */
 /** @var array<\App\Models\Prispevok> $prispevky */
+/** @var string $mode */
+/** @var array $contextParams */
+/** @var ?\App\Models\Udalost $udalost */
+/** @var ?\App\Models\Skupina $skupina */
+/** @var ?string $returnTo */
+
+$selfUrlParams = $contextParams;
+if (!empty($returnTo)) {
+    $selfUrlParams['return_to'] = $returnTo;
+}
+$selfUrl = $link->url('adminPrispevok.index', $selfUrlParams);
 ?>
+
+<?php if (!empty($returnTo)): ?>
+    <div class="mb-3">
+        <a class="btn btn-outline-secondary"
+           href="<?= htmlspecialchars($returnTo) ?>">
+            ← Späť
+        </a>
+    </div>
+<?php endif; ?>
 
 <h1 class="page-title">Príspevky</h1>
 
+<?php if ($mode === 'udalost'): ?>
+    <div class="text-muted mb-2">
+        Udalosť: <strong><?= htmlspecialchars($udalost->getNazov()) ?></strong>
+    </div>
+<?php elseif ($mode === 'skupina'): ?>
+    <div class="text-muted mb-2">
+        Skupina: <strong><?= htmlspecialchars($skupina->getNazov()) ?></strong>
+    </div>
+<?php endif; ?>
+
 <div class="mb-3 d-flex gap-2">
-    <a class="btn btn-primary" href="<?= $link->url('adminPrispevok.create') ?>">Nový príspevok</a>
+    <?php
+    if ($mode === 'udalost') {
+        $newUrl = $link->url('adminPrispevok.createForUdalost', [
+                'id_udalost' => $udalost->getId(),
+                'return_to' => $selfUrl
+        ]);
+    } elseif ($mode === 'skupina') {
+        $newUrl = $link->url('adminPrispevok.createForSkupina', [
+                'id_skupina' => $skupina->getId(),
+                'return_to' => $selfUrl
+        ]);
+    } else {
+        $newUrl = $link->url('adminPrispevok.create', [
+                'return_to' => $selfUrl
+        ]);
+    }
+    ?>
+    <a class="btn btn-primary" href="<?= $newUrl ?>">Nový príspevok</a>
 </div>
 
 <?php if (empty($prispevky)): ?>
@@ -16,7 +63,6 @@
         <thead>
         <tr>
             <th>Názov</th>
-            <th>Viditeľnosť</th>
             <th>Vytvorené</th>
             <th class="text-end">Akcie</th>
         </tr>
@@ -25,23 +71,31 @@
         <?php foreach ($prispevky as $p): ?>
             <tr>
                 <td><?= htmlspecialchars((string)$p->getNazov()) ?></td>
-                <td><?= htmlspecialchars((string)$p->getViditelnost()) ?></td>
                 <td>
-                    <?php if ($p->getCreatedAt()): ?>
-                        <?= date('d.m.Y H:i', strtotime((string)$p->getCreatedAt())) ?>
-                    <?php endif; ?>
+                    <?= $p->getCreatedAt()
+                            ? date('d.m.Y H:i', strtotime((string)$p->getCreatedAt()))
+                            : '' ?>
                 </td>
                 <td class="text-end">
                     <a class="btn btn-outline-secondary btn-sm"
-                       href="<?= $link->url('adminPrispevok.show', ['id_prispevok' => $p->getId()]) ?>">
+                       href="<?= $link->url('adminPrispevok.show', [
+                               'id_prispevok' => $p->getId(),
+                               'return_to' => $selfUrl
+                       ]) ?>">
                         Detail
                     </a>
                     <a class="btn btn-outline-primary btn-sm"
-                       href="<?= $link->url('adminPrispevok.edit', ['id_prispevok' => $p->getId()]) ?>">
+                       href="<?= $link->url('adminPrispevok.edit', [
+                               'id_prispevok' => $p->getId(),
+                               'return_to' => $selfUrl
+                       ]) ?>">
                         Upraviť
                     </a>
                     <a class="btn btn-outline-danger btn-sm"
-                       href="<?= $link->url('adminPrispevok.delete', ['id_prispevok' => $p->getId()]) ?>"
+                       href="<?= $link->url('adminPrispevok.delete', [
+                               'id_prispevok' => $p->getId(),
+                               'return_to' => $selfUrl
+                       ]) ?>"
                        onclick="return confirm('Naozaj zmazať príspevok?');">
                         Zmazať
                     </a>

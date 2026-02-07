@@ -62,6 +62,14 @@
                            href="<?= $link->url('udalost.show', ['id_udalost' => $uid]) ?>">
                             Detail
                         </a>
+                        <a class="btn btn-sm btn-outline-success ms-2"
+                           href="<?= $link->url('adminPrispevok.index', [
+                                   'id_udalost' => $uid,
+                                   'return_to' => $_SERVER['REQUEST_URI'] ?? $link->url('udalost.index')
+                           ]) ?>">
+                            Príspevky
+                        </a>
+
                         <a class="btn btn-sm btn-outline-primary ms-2"
                            href="<?= $link->url('udalost.edit', ['id_udalost' => $uid]) ?>">
                             Upraviť

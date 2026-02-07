@@ -105,30 +105,11 @@ if ($isEdit) {
             <?php endif; ?>
         </div>
 
-        <div class="mb-3">
-            <label class="form-label">Obdobie (pre typ „obdobie“)</label>
-            <select class="form-select <?= isset($errors['id_obdobie']) ? 'is-invalid' : '' ?>" name="id_obdobie">
-                <option value="">— vyber —</option>
-
-                <?php
-                $selectedObdobieId = $prispevok->getIdObdobie();
-                if ($selectedObdobieId === null && !empty($ctx['activeObdobieId'])) {
-                    $selectedObdobieId = (int)$ctx['activeObdobieId'];
-                }
-                ?>
-
-                <?php foreach ($ctx['obdobia'] as $o): ?>
-                    <option value="<?= (int)$o->getId() ?>" <?= ((int)$selectedObdobieId === (int)$o->getId()) ? 'selected' : '' ?>>
-                        <?= htmlspecialchars((string)$o->getNazov()) ?>
-                        (<?= htmlspecialchars((string)$o->getDatumOd()) ?> – <?= htmlspecialchars((string)$o->getDatumDo()) ?>)
-                    </option>
-                <?php endforeach; ?>
-            </select>
-
-            <?php if (isset($errors['id_obdobie'])): ?>
-                <div class="invalid-feedback"><?= htmlspecialchars((string)$errors['id_obdobie']) ?></div>
-            <?php endif; ?>
+        <div class="form-text">
+            Pri možnosti „Pre prihlásených“ sa príspevok automaticky priradí k aktívnemu obdobiu.
         </div>
+
+
     <?php endif; ?>
 
     <div class="d-flex gap-2">

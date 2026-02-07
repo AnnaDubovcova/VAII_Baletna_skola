@@ -13,12 +13,73 @@ class AdminPrispevokController extends AdminController
 {
     public function index(Request $request): Response
     {
-        $prispevky = Prispevok::getAll('', [], 'created_at DESC');
+        $ctx = $this->detectContext($request);
+        $returnTo = $this->getSafeReturnTo($request);
+
+
+        if ($ctx['type'] === 'udalost') {
+            $id = (int)$ctx['id'];
+            $udalost = Udalost::getOne($id);
+            if ($udalost === null) {
+                throw new \Exception('Udalosť nenájdená.');
+            }
+
+            $prispevky = Prispevok::getAll(
+                'viditelnost = :v AND id_udalost = :id',
+                ['v' => 'udalost', 'id' => $id],
+                'created_at DESC'
+            );
+
+            return $this->html([
+                'prispevky' => $prispevky,
+                'mode' => 'udalost',
+                'udalost' => $udalost,
+                'contextParams' => $this->contextParams($ctx),
+                'returnTo' => $returnTo,
+            ]);
+        }
+
+        if ($ctx['type'] === 'skupina') {
+            $id = (int)$ctx['id'];
+            $skupina = Skupina::getOne($id);
+            if ($skupina === null) {
+                throw new \Exception('Skupina nenájdená.');
+            }
+
+            $prispevky = Prispevok::getAll(
+                'viditelnost = :v AND id_skupina = :id',
+                ['v' => 'skupina', 'id' => $id],
+                'created_at DESC'
+            );
+
+            return $this->html([
+                'prispevky' => $prispevky,
+                'mode' => 'skupina',
+                'skupina' => $skupina,
+                'contextParams' => $this->contextParams($ctx),
+                'returnTo' => $returnTo,
+            ]);
+        }
+
+        // GLOBAL: verejný + obdobie pre aktívne obdobie
+        $activeObdobieId = (int)$this->requireActiveObdobieId();
+
+        $prispevky = Prispevok::getAll(
+            '(viditelnost = :v1) OR (viditelnost = :v2 AND id_obdobie = :o)',
+            ['v1' => 'verejny', 'v2' => 'obdobie', 'o' => $activeObdobieId],
+            'created_at DESC'
+        );
 
         return $this->html([
             'prispevky' => $prispevky,
+            'mode' => 'global',
+            'activeObdobieId' => $activeObdobieId,
+            'contextParams' => [],
+            'returnTo' => $returnTo,
+
         ]);
     }
+
 
     public function show(Request $request): Response
     {
@@ -60,6 +121,7 @@ class AdminPrispevokController extends AdminController
                 $prispevok->save();
 
                 return $this->redirect($returnTo ?: $this->url('adminPrispevok.index'));
+
             }
         }
 
@@ -73,10 +135,6 @@ class AdminPrispevokController extends AdminController
         ], 'form');
     }
 
-    /**
-     * Edit: dovoľujeme editovať len verejný/obdobie cez tento formulár.
-     * Skupina/udalosť sa tvoria cez createFor... a neskôr môžeme spraviť špeciálny edit.
-     */
     public function edit(Request $request): Response
     {
         $id = (int)$request->value('id_prispevok');
@@ -90,21 +148,48 @@ class AdminPrispevokController extends AdminController
         $returnTo = $this->getSafeReturnTo($request);
         $ctx = $this->getContextOptions();
 
-        // Ak je to skupina/udalosť, nepustíme to do univerzálneho edit formulára
-        $v = (string)$prispevok->getViditelnost();
-        if ($v === 'skupina' || $v === 'udalost') {
-            // aby admin neskončil v “nesprávnom” formulári
-            return $this->redirect($this->url('adminPrispevok.show', ['id_prispevok' => $prispevok->getId()]));
-        }
-
         if ($request->isPost()) {
-            $this->fillAndValidateGeneral($request, $prispevok, $errors, (int)($ctx['activeObdobieId'] ?? 0));
+            // rozhodni podľa typu
+            $v = (string)$prispevok->getViditelnost();
+
+            if ($v === 'verejny' || $v === 'obdobie') {
+                $this->fillAndValidateGeneral(
+                    $request,
+                    $prispevok,
+                    $errors,
+                    (int)($ctx['activeObdobieId'] ?? 0)
+                );
+            } else {
+                // skupina / udalosť – kontext je fixný
+                $this->fillAndValidateFixed(
+                    $request,
+                    $prispevok,
+                    $errors,
+                    $v,
+                    $v === 'skupina'
+                        ? (int)$prispevok->getIdSkupina()
+                        : (int)$prispevok->getIdUdalost()
+                );
+            }
 
             if (empty($errors)) {
                 $prispevok->save();
-
                 return $this->redirect($returnTo ?: $this->url('adminPrispevok.index'));
             }
+        }
+
+        // priprav context pre view (len informačný box)
+        $context = null;
+        if ($prispevok->getViditelnost() === 'skupina') {
+            $context = [
+                'type' => 'skupina',
+                'skupina' => Skupina::getOne((int)$prispevok->getIdSkupina()),
+            ];
+        } elseif ($prispevok->getViditelnost() === 'udalost') {
+            $context = [
+                'type' => 'udalost',
+                'udalost' => Udalost::getOne((int)$prispevok->getIdUdalost()),
+            ];
         }
 
         return $this->html([
@@ -113,9 +198,10 @@ class AdminPrispevokController extends AdminController
             'formAction' => 'edit',
             'returnTo' => $returnTo,
             'ctx' => $ctx,
-            'context' => null,
+            'context' => $context,
         ], 'form');
     }
+
 
     public function delete(Request $request): Response
     {
@@ -156,7 +242,8 @@ class AdminPrispevokController extends AdminController
 
             if (empty($errors)) {
                 $p->save();
-                return $this->redirect($returnTo ?: $this->url('adminPrispevok.index'));
+                return $this->redirect($returnTo ?: $this->url('adminPrispevok.index', ['id_skupina' => $idSkupina]));
+
             }
         }
 
@@ -194,7 +281,8 @@ class AdminPrispevokController extends AdminController
 
             if (empty($errors)) {
                 $p->save();
-                return $this->redirect($returnTo ?: $this->url('adminPrispevok.index'));
+                return $this->redirect($returnTo ?: $this->url('adminPrispevok.index', ['id_udalost' => $idUdalost]));
+
             }
         }
 
@@ -253,25 +341,9 @@ class AdminPrispevokController extends AdminController
             return;
         }
 
-        // vid === 'obdobie'
-        $oidRaw = $request->value('id_obdobie');
-        $oid = (int)$oidRaw;
+        $active = (int)$this->requireActiveObdobieId();
+        $p->setIdObdobie($active);
 
-        // ak admin nič nevybral, default na active obdobie (ak existuje)
-        if ($oid <= 0 && $activeObdobieId > 0) {
-            $oid = $activeObdobieId;
-        }
-
-        if ($oid <= 0) {
-            $errors['id_obdobie'] = 'Vyber obdobie.';
-        } else {
-            // voliteľné: over existenciu
-            if (Obdobie::getOne($oid) === null) {
-                $errors['id_obdobie'] = 'Zvolené obdobie neexistuje.';
-            } else {
-                $p->setIdObdobie($oid);
-            }
-        }
     }
 
     private function getContextOptions(): array
@@ -345,4 +417,36 @@ class AdminPrispevokController extends AdminController
             $errors['viditelnost'] = 'Neplatný fixný kontext.';
         }
     }
+
+    private function detectContext(Request $request): array
+    {
+        $idUdalost = (int)$request->value('id_udalost');
+        $idSkupina = (int)$request->value('id_skupina');
+
+        // pravidlo: len jeden kontext
+        if ($idUdalost > 0 && $idSkupina > 0) {
+            throw new \Exception('Neplatný kontext: udalosť aj skupina naraz.');
+        }
+
+        if ($idUdalost > 0) {
+            return ['type' => 'udalost', 'id' => $idUdalost];
+        }
+        if ($idSkupina > 0) {
+            return ['type' => 'skupina', 'id' => $idSkupina];
+        }
+
+        return ['type' => 'global', 'id' => null];
+    }
+
+    private function contextParams(array $ctx): array
+    {
+        if ($ctx['type'] === 'udalost') {
+            return ['id_udalost' => (int)$ctx['id']];
+        }
+        if ($ctx['type'] === 'skupina') {
+            return ['id_skupina' => (int)$ctx['id']];
+        }
+        return [];
+    }
+
 }

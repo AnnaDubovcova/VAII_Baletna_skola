@@ -49,6 +49,16 @@
                             Členovia
                         </a>
 
+                        <!-- SPRÁVA PRÍSPEVKOV -->
+                        <a href="<?= $link->url('adminPrispevok.index', [
+                                'id_skupina' => $skupina->getId(),
+                                'return_to' => $_SERVER['REQUEST_URI'] ?? $link->url('skupina.index')
+                        ]) ?>"
+                           class="btn btn-sm btn-outline-success me-1">
+                            Príspevky
+                        </a>
+
+
                         <!-- DETAIL SKUPINY -->
                         <a href="<?= $link->url('skupina.show', [
                                 'id_skupina' => $skupina->getId(),
