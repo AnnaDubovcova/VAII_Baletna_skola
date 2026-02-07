@@ -41,6 +41,7 @@ class RozvrhUserController extends UserBaseController
             'prevWeek' => $prevWeek,
             'nextWeek' => $nextWeek,
             'todayWeek' => $todayWeek,
+            'activeOsoba' => $activeOsoba,
         ]);
 
     }
