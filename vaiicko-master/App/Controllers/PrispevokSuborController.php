@@ -79,4 +79,56 @@ class PrispevokSuborController extends AppController
         readfile($path);
         exit;
     }
+
+    public function preview(Request $request): Response
+    {
+        $idSubor = (int)$request->value('id_prispevok_subor');
+        $subor = PrispevokSubor::getOne($idSubor);
+        if ($subor === null) {
+            throw new \Exception('Súbor nenájdený.');
+        }
+
+        // povol len obrázky
+        $mime = (string)$subor->getMimeType();
+        if (!in_array($mime, ['image/jpeg', 'image/png'], true)) {
+            throw new \Exception('Preview je dostupný len pre obrázky.');
+        }
+
+        $prispevok = Prispevok::getOne((int)$subor->getIdPrispevok());
+        if ($prispevok === null) {
+            throw new \Exception('Príspevok nenájdený.');
+        }
+
+        // --- autorizácia rovnaká ako v download() ---
+        if ($prispevok->getViditelnost() !== 'verejny') {
+            // admin môžeš povoliť bez activeOsoba (odporúčané):
+            $id = $this->identityOrNull();
+            if ($id === null) {
+                // user režim
+                $activeOsoba = $this->requireActiveOsoba();
+                $idObdobie = (int)$this->requireActiveObdobieId();
+
+                $allowed = Prispevok::getOneForOsoba(
+                    (int)$prispevok->getId(),
+                    (int)$activeOsoba->getId(),
+                    $idObdobie
+                );
+                if ($allowed === null) {
+                    return $this->redirect($this->url('prispevokUser.index'));
+                }
+            }
+        }
+
+        $path = rtrim($this->uploadDir(), '/') . '/' . (string)$subor->getStoredName();
+        if (!is_file($path)) {
+            throw new \Exception('Súbor na disku neexistuje.');
+        }
+
+        header('Content-Type: ' . $mime);
+        header('Content-Length: ' . (string)$subor->getSize());
+        header('Content-Disposition: inline; filename="' . basename((string)$subor->getOriginalName()) . '"');
+        readfile($path);
+        exit;
+    }
+
 }

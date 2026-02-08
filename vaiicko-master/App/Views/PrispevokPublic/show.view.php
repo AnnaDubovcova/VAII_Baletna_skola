@@ -30,6 +30,22 @@
             <ul class="mb-0">
                 <?php foreach ($subory as $s): ?>
                     <li>
+                        <?php
+                        $mime = (string)$s->getMimeType();
+                        $isImg = in_array($mime, ['image/jpeg','image/png'], true);
+                        ?>
+
+                        <?php if ($isImg): ?>
+                            <div class="mb-2">
+                                <img
+                                        src="<?= $link->url('prispevokSubor.preview', ['id_prispevok_subor' => $s->getId()]) ?>"
+                                        alt="<?= htmlspecialchars((string)$s->getOriginalName()) ?>"
+                                        class="img-fluid rounded border"
+                                        style="max-height: 320px;"
+                                >
+                            </div>
+                        <?php endif; ?>
+
                         <a href="<?= $link->url('prispevokSubor.download', ['id_prispevok_subor' => $s->getId()]) ?>">
                             <?= htmlspecialchars((string)$s->getOriginalName()) ?>
                         </a>

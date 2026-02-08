@@ -9,15 +9,18 @@ use Framework\Http\Responses\Response;
 
 class AdminPrispevokSuborController extends AdminController
 {
-    private const MAX_SIZE = 10_000_000; // 10 MB
+    private const MAX_SIZE = 50_000_000; // 50 MB
 
-    private const ALLOWED_EXT = ['pdf','jpg','jpeg','png','docx'];
+    private const ALLOWED_EXT = ['pdf','jpg','jpeg','png','docx','mp3','mp4'];
     private const ALLOWED_MIME = [
         'application/pdf',
         'image/jpeg',
         'image/png',
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'audio/mpeg',
+        'video/mp4',
     ];
+
 
 
     public function index(Request $request): Response
