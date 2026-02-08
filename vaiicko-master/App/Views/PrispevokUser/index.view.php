@@ -4,7 +4,30 @@
 /** @var \App\Models\Osoba $activeOsoba */
 /** @var array<int,string> $skupinaMap */
 /** @var array<int,string> $udalostMap */
+/** @var string $mode */
+/** @var ?\App\Models\Skupina $skupina */
+/** @var ?\App\Models\Udalost $udalost */
+/** @var ?string $selfUrl */
+/** @var ?string $returnTo */
+
 ?>
+
+<?php if (!empty($returnTo)): ?>
+    <div class="mb-3">
+        <a class="btn btn-outline-secondary" href="<?= htmlspecialchars($returnTo) ?>">← Späť</a>
+    </div>
+<?php endif; ?>
+
+<?php if (($mode ?? 'global') === 'skupina' && $skupina): ?>
+    <div class="text-muted mb-2">
+        Skupina: <strong><?= htmlspecialchars((string)$skupina->getNazov()) ?></strong>
+    </div>
+<?php elseif (($mode ?? 'global') === 'udalost' && $udalost): ?>
+    <div class="text-muted mb-2">
+        Udalosť: <strong><?= htmlspecialchars((string)$udalost->getNazov()) ?></strong>
+    </div>
+<?php endif; ?>
+
 
 <h1 class="page-title">Oznamy</h1>
 
@@ -35,7 +58,11 @@
             ?>
 
             <a class="list-group-item list-group-item-action"
-               href="<?= $link->url('prispevokUser.show', ['id_prispevok' => $p->getId()]) ?>">
+               href="<?= $link->url('prispevokUser.show', [
+                       'id_prispevok' => $p->getId(),
+                       'return_to' => $selfUrl
+               ]) ?>">
+
                 <div class="d-flex justify-content-between">
                     <strong><?= htmlspecialchars((string)$p->getNazov()) ?></strong>
                     <small class="text-muted">

@@ -104,12 +104,17 @@
         </a>
     <?php endif; ?>
 
-    <?php if (!$user->isAdmin()): ?>
-        <a class="btn btn-sm btn-outline-primary"
-           href="<?= $link->url('prispevokUser.index') ?>">
-            Príspevky
+    <?php if ($user->isLoggedIn() && !$user->isAdmin()): ?>
+        <a class="btn btn-sm btn-outline-secondary"
+           href="<?= $link->url('prispevokUser.index', [
+                   'mode' => 'skupina',
+                   'id_skupina' => (int)$skupina->getId(),
+                   'return_to' => $_SERVER['REQUEST_URI'] ?? $link->url('skupinyUser.index')
+           ]) ?>">
+            Príspevky skupiny
         </a>
     <?php endif; ?>
+
 
 
 </div>

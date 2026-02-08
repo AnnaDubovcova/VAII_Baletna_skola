@@ -96,6 +96,16 @@ $vyzaduje = !empty($udalost['vyzaduje_reakciu']);
     </div>
 <?php endif; ?>
 
+<a class="btn btn-outline-secondary mt-3 me-2"
+   href="<?= $link->url('prispevokUser.index', [
+           'mode' => 'udalost',
+           'id_udalost' => (int)$udalost['id_udalost'],
+           'return_to' => $_SERVER['REQUEST_URI'] ?? $link->url('rozvrhUser.index')
+   ]) ?>">
+    Príspevky udalosti
+</a>
+
+
 
 <a class="btn btn-outline-secondary mt-3" href="<?= $link->url('rozvrhUser.index') ?>">
     Späť na rozvrh

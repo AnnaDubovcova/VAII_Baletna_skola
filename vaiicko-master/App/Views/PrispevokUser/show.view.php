@@ -5,9 +5,10 @@
 /** @var \App\Models\PrispevokSubor[] $subory */
 ?>
 
-<div class="mb-3">
-    <a class="btn btn-outline-secondary" href="<?= $link->url('prispevokUser.index') ?>">← Späť</a>
-</div>
+<a class="btn btn-outline-secondary" href="<?= !empty($returnTo) ? htmlspecialchars($returnTo) : $link->url('prispevokUser.index') ?>">
+    ← Späť
+</a>
+
 
 <h1 class="page-title"><?= htmlspecialchars((string)$prispevok->getNazov()) ?></h1>
 
