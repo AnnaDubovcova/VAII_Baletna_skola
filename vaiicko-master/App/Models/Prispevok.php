@@ -93,6 +93,38 @@ class Prispevok extends Model
 
     }
 
+    /** @return self[] */
+    public static function getAllForOsobaNonPublic(int $idOsoba, int $idObdobie): array
+    {
+        $where = "
+        (viditelnost = 'obdobie' AND id_obdobie = :o)
+        OR (
+            viditelnost = 'skupina'
+            AND id_skupina IN (
+                SELECT s.id_skupina
+                FROM osoba_skupina os
+                JOIN skupina s ON s.id_skupina = os.id_skupina
+                WHERE os.id_osoba = :os
+                  AND s.id_obdobie = :o
+            )
+        )
+        OR (
+            viditelnost = 'udalost'
+            AND id_udalost IN (
+                SELECT us.id_udalost
+                FROM udalost_skupina us
+                JOIN osoba_skupina os ON os.id_skupina = us.id_skupina
+                JOIN udalost u ON u.id_udalost = us.id_udalost
+                WHERE os.id_osoba = :os
+                  AND u.id_obdobie = :o
+            )
+        )
+    ";
+
+        return self::getAll($where, ['os' => $idOsoba, 'o' => $idObdobie], 'created_at DESC');
+    }
+
+
 
     public static function getOnePublic(int $idPrispevok): ?self
     {

@@ -22,7 +22,8 @@ class PrispevokUserController extends UserBaseController
         $idOsoba = (int)$activeOsoba->getId();
         $idObdobie = (int)$this->requireActiveObdobieId();
 
-        $prispevky = Prispevok::getAllForOsoba($idOsoba, $idObdobie);
+        $prispevky = Prispevok::getAllForOsobaNonPublic($idOsoba, $idObdobie);
+
 
         // Pre pekné zobrazenie: názvy skupín/udalostí (bez N+1)
         $skupinaIds = [];

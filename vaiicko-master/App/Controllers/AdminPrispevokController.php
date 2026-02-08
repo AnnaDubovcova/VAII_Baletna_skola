@@ -16,6 +16,8 @@ class AdminPrispevokController extends AdminController
     {
         $ctx = $this->detectContext($request);
         $returnTo = $this->getSafeReturnTo($request);
+        $maps = $this->buildViditelnostMaps();
+
 
 
         if ($ctx['type'] === 'udalost') {
@@ -36,6 +38,10 @@ class AdminPrispevokController extends AdminController
                 'mode' => 'udalost',
                 'udalost' => $udalost,
                 'contextParams' => $this->contextParams($ctx),
+                'obdobiaMap' => $maps['obdobiaMap'],
+                'skupinyMap' => $maps['skupinyMap'],
+                'udalostiMap' => $maps['udalostiMap'],
+
                 'returnTo' => $returnTo,
             ]);
         }
@@ -58,6 +64,10 @@ class AdminPrispevokController extends AdminController
                 'mode' => 'skupina',
                 'skupina' => $skupina,
                 'contextParams' => $this->contextParams($ctx),
+                'obdobiaMap' => $maps['obdobiaMap'],
+                'skupinyMap' => $maps['skupinyMap'],
+                'udalostiMap' => $maps['udalostiMap'],
+
                 'returnTo' => $returnTo,
             ]);
         }
@@ -76,6 +86,11 @@ class AdminPrispevokController extends AdminController
             'mode' => 'global',
             'activeObdobieId' => $activeObdobieId,
             'contextParams' => [],
+
+            'obdobiaMap' => $maps['obdobiaMap'],
+            'skupinyMap' => $maps['skupinyMap'],
+            'udalostiMap' => $maps['udalostiMap'],
+
             'returnTo' => $returnTo,
 
         ]);
@@ -456,5 +471,31 @@ class AdminPrispevokController extends AdminController
         }
         return [];
     }
+
+    private function buildViditelnostMaps(): array
+    {
+        $obdobiaMap = [];
+        foreach (Obdobie::getAll('', [], 'datum_od DESC') as $o) {
+            $obdobiaMap[(int)$o->getId()] = (string)$o->getNazov();
+        }
+
+        $skupinyMap = [];
+        foreach (Skupina::getAll('', [], 'nazov ASC') as $s) {
+            $skupinyMap[(int)$s->getId()] = (string)$s->getNazov();
+        }
+
+        $udalostiMap = [];
+        foreach (Udalost::getAll('', [], 'zaciatok DESC') as $u) {
+            $udalostiMap[(int)$u->getId()] =
+                (string)$u->getNazov() . ' (' . date('d.m.Y H:i', strtotime((string)$u->getZaciatok())) . ')';
+        }
+
+        return [
+            'obdobiaMap' => $obdobiaMap,
+            'skupinyMap' => $skupinyMap,
+            'udalostiMap' => $udalostiMap,
+        ];
+    }
+
 
 }

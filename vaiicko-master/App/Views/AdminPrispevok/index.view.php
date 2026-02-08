@@ -6,6 +6,10 @@
 /** @var ?\App\Models\Udalost $udalost */
 /** @var ?\App\Models\Skupina $skupina */
 /** @var ?string $returnTo */
+/** @var array<int,string> $obdobiaMap */
+/** @var array<int,string> $skupinyMap */
+/** @var array<int,string> $udalostiMap */
+
 
 $selfUrlParams = $contextParams;
 if (!empty($returnTo)) {
@@ -13,6 +17,41 @@ if (!empty($returnTo)) {
 }
 $selfUrl = $link->url('adminPrispevok.index', $selfUrlParams);
 ?>
+
+<?php
+function prispevokViditelnostLabel(
+        \App\Models\Prispevok $p,
+        array $obdobiaMap,
+        array $skupinyMap,
+        array $udalostiMap
+): string {
+    $v = (string)$p->getViditelnost();
+
+    if ($v === 'verejny') {
+        return 'Verejný';
+    }
+    if ($v === 'obdobie') {
+        $id = (int)$p->getIdObdobie();
+        return 'Obdobie: ' . ($obdobiaMap[$id] ?? ('ID ' . $id));
+    }
+    if ($v === 'skupina') {
+        $id = (int)$p->getIdSkupina();
+        return 'Skupina: ' . ($skupinyMap[$id] ?? ('ID ' . $id));
+    }
+    if ($v === 'udalost') {
+        $id = (int)$p->getIdUdalost();
+        return 'Udalosť: ' . ($udalostiMap[$id] ?? ('ID ' . $id));
+    }
+    return $v;
+}
+
+function prispevokSnippet(?string $text, int $max = 140): string {
+    $s = trim(strip_tags((string)$text));
+    if ($s === '') return '';
+    return mb_strlen($s) > $max ? (mb_substr($s, 0, $max) . '…') : $s;
+}
+?>
+
 
 <?php if (!empty($returnTo)): ?>
     <div class="mb-3">
@@ -63,19 +102,41 @@ $selfUrl = $link->url('adminPrispevok.index', $selfUrlParams);
         <thead>
         <tr>
             <th>Názov</th>
+            <th>Viditeľnosť</th>
+            <th>Obsah</th>
             <th>Vytvorené</th>
             <th class="text-end">Akcie</th>
         </tr>
+
         </thead>
         <tbody>
         <?php foreach ($prispevky as $p): ?>
             <tr>
-                <td><?= htmlspecialchars((string)$p->getNazov()) ?></td>
+                <td>
+
+                    <div class="fw-semibold"><?= htmlspecialchars((string)$p->getNazov()) ?></div>
+                </td>
+
+
+                <td>
+    <span class="badge bg-light text-dark border">
+        <?= htmlspecialchars(prispevokViditelnostLabel($p, $obdobiaMap, $skupinyMap, $udalostiMap)) ?>
+    </span>
+                </td>
+
+                <td>
+                    <div class="text-muted" style="font-size: 0.95em;">
+                        <?= htmlspecialchars(prispevokSnippet($p->getObsah())) ?>
+                    </div>
+                </td>
+
                 <td>
                     <?= $p->getCreatedAt()
                             ? date('d.m.Y H:i', strtotime((string)$p->getCreatedAt()))
                             : '' ?>
                 </td>
+                <td>
+
                 <td class="text-end">
                     <a class="btn btn-outline-secondary btn-sm"
                        href="<?= $link->url('adminPrispevok.show', [

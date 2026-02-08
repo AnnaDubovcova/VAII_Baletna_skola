@@ -14,6 +14,16 @@
         Späť
     </a>
 
+    <a class="btn btn-sm btn-outline-secondary"
+       href="<?= $link->url('adminPrispevok.index', [
+               'mode' => 'udalost',
+               'id_udalost' => (int)$udalost->getId(),
+               'return_to' => $_SERVER['REQUEST_URI'] ?? $link->url('udalost.index')
+       ]) ?>">
+        Príspevky
+    </a>
+
+
     <a class="btn btn-sm btn-outline-primary"
        href="<?= $link->url('udalost.edit', [
                'id_udalost' => (int)$udalost->getId(),

@@ -24,7 +24,7 @@
             if ($v === 'verejny') {
                 $badge = 'Verejné';
             } elseif ($v === 'obdobie') {
-                $badge = 'Obdobie';
+                $badge = 'Aktívne obdobie';
             } elseif ($v === 'skupina') {
                 $sid = (int)$p->getIdSkupina();
                 $badge = 'Skupina: ' . ($skupinaMap[$sid] ?? ('ID ' . $sid));

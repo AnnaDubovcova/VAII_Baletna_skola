@@ -91,8 +91,25 @@
     <?php endif; ?>
 
     <?php if ($user->isAdmin()): ?>
+        <a class="btn btn-outline-secondary"
+           href="<?= $link->url('adminPrispevok.index', [
+                   'mode' => 'skupina',
+                   'id_skupina' => (int)$skupina->getId(),
+                   'return_to' => $_SERVER['REQUEST_URI'] ?? $link->url('skupina.index')
+           ]) ?>">
+            Správa príspevkov
+        </a>
         <a class="btn btn-primary" href="<?= $link->url('skupina.edit', ['id_skupina' => $skupina->getId()]) ?>">
             Upraviť
         </a>
     <?php endif; ?>
+
+    <?php if (!$user->isAdmin()): ?>
+        <a class="btn btn-sm btn-outline-primary"
+           href="<?= $link->url('prispevokUser.index') ?>">
+            Príspevky
+        </a>
+    <?php endif; ?>
+
+
 </div>
