@@ -48,24 +48,15 @@ class AdminPrispevokSuborController extends AdminController
         $returnTo = $this->getSafeReturnTo($request)
             ?: $this->url('adminPrispevok.show', ['id_prispevok' => $idPrispevok]);
 
-        // Upload z $_FILES (rovnako ako na cvičení)
-        if (!isset($_FILES['subor']) || !is_array($_FILES['subor'])) {
+        $file = $request->file('subor');
+        if ($file === null || !$file->isOk()) {
             return $this->redirect($returnTo);
         }
 
-        $f = $_FILES['subor'];
+        $tmp = $file->getFileTempPath();
+        $orig = $file->getName();
+        $size = $file->getSize();
 
-        if (($f['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-            return $this->redirect($returnTo);
-        }
-
-        $tmp = (string)($f['tmp_name'] ?? '');
-        $orig = (string)($f['name'] ?? '');
-        $size = (int)($f['size'] ?? 0);
-
-        if ($tmp === '' || !is_uploaded_file($tmp)) {
-            return $this->redirect($returnTo);
-        }
         if ($size <= 0 || $size > self::MAX_SIZE) {
             return $this->redirect($returnTo);
         }
@@ -75,6 +66,7 @@ class AdminPrispevokSuborController extends AdminController
             return $this->redirect($returnTo);
         }
 
+// MIME detekuj zo servera (nie z browsera)
         $mime = 'application/octet-stream';
         $fi = new \finfo(FILEINFO_MIME_TYPE);
         $detected = $fi->file($tmp);
@@ -85,21 +77,19 @@ class AdminPrispevokSuborController extends AdminController
             return $this->redirect($returnTo);
         }
 
-        // uloženie na disk
-        $dir = rtrim($this->uploadDir(), '/') . '/' . $idPrispevok;
-
+// uloženie na disk
+        $dir = $this->uploadDir();
         if (!is_dir($dir) && !mkdir($dir, 0775, true)) {
             throw new \Exception('Nepodarilo sa vytvoriť upload adresár.');
         }
 
-        $storedFile = bin2hex(random_bytes(16)) . '.' . $ext;
-        $stored = $idPrispevok . '/' . $storedFile;
-        $dest = rtrim($this->uploadDir(), '/') . '/' . $stored;
+        $stored = bin2hex(random_bytes(16)) . '.' . $ext;
+        $dest = rtrim($dir, '/') . '/' . $stored;
 
-
-        if (!move_uploaded_file($tmp, $dest)) {
+        if (!$file->store($dest)) {
             throw new \Exception('Nepodarilo sa uložiť súbor.');
         }
+
 
         // DB záznam
         $s = new PrispevokSubor();
