@@ -9,6 +9,8 @@ use Framework\Http\Request;
 use Framework\Http\Responses\Response;
 use Framework\Http\Responses\ViewResponse;
 
+use Framework\DB\Connection;
+
 /**
  * Class AuthController
  *
@@ -78,4 +80,80 @@ class AuthController extends AppController
         $this->app->getAuthenticator()->logout();
         return $this->html();
     }
+
+    public function authorize(\Framework\Http\Request $request, string $action): bool
+    {
+        // ak je user prihlásený, nech sa nedostane na login/register
+        if ($this->user->isLoggedIn() && in_array($action, ['login', 'register'], true)) {
+            return false; // FW by mal dať 403 alebo redirect podľa tvojej logiky
+        }
+        return parent::authorize($request, $action);
+    }
+
+
+    public function register(Request $request): Response
+    {
+        if ($this->user->isLoggedIn()) {
+            // prihlásený user nemá čo registrovať nový účet
+            return $this->redirect($this->url('rozvrhUser.index'));
+        }
+
+        $errors = [];
+        $email = '';
+        $password = '';
+        $password2 = '';
+
+        if ($request->isPost()) {
+            $email = trim((string)$request->value('email'));
+            $password = (string)$request->value('password');
+            $password2 = (string)$request->value('password2');
+
+            // --- VALIDÁCIA ---
+            if ($email === '' || mb_strlen($email) > 150 || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $errors['email'] = 'Zadaj platný email (max 150 znakov).';
+            }
+
+            if ($password === '' || mb_strlen($password) < 8) {
+                $errors['password'] = 'Heslo musí mať aspoň 8 znakov.';
+            }
+
+            if ($password2 === '' || $password2 !== $password) {
+                $errors['password2'] = 'Heslá sa nezhodujú.';
+            }
+
+            // --- UNIQUE EMAIL ---
+            if (!isset($errors['email'])) {
+                $con = Connection::getInstance();
+                $stmt = $con->prepare('SELECT 1 FROM pouzivatel WHERE email = :e LIMIT 1');
+                $stmt->execute(['e' => $email]);
+                if ($stmt->fetchColumn()) {
+                    $errors['email'] = 'Tento email je už zaregistrovaný.';
+                }
+            }
+
+            if (empty($errors)) {
+                $hash = password_hash($password, PASSWORD_DEFAULT);
+
+                $con = Connection::getInstance();
+                $stmt = $con->prepare(
+                    'INSERT INTO pouzivatel (email, password_hash, rola) VALUES (:e, :h, :r)'
+                );
+                $stmt->execute([
+                    'e' => $email,
+                    'h' => $hash,
+                    'r' => 'user',
+                ]);
+
+                // po registrácii -> login
+                return $this->redirect($this->url('auth.login'));
+            }
+        }
+
+        return $this->html([
+            'errors' => $errors,
+            'email' => $email,
+        ]);
+    }
+
+
 }

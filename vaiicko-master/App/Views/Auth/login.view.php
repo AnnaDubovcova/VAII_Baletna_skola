@@ -33,6 +33,16 @@ $view->setLayout('auth');
                             </button>
                         </div>
                     </form>
+
+                    <div class="text-center mt-3">
+                        <span class="text-muted">Nemáš účet?</span>
+                        <a href="<?= $link->url('auth.register') ?>" class="ms-1">
+                            Zaregistruj sa
+                        </a>
+
+                    </div>
+
+
                 </div>
             </div>
         </div>

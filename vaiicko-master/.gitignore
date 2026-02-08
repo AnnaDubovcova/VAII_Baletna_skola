@@ -1,1 +1,4 @@
 .idea
+/storage/uploads/*
+!/storage/uploads/prispevky/.gitkeep
+
