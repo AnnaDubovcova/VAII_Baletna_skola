@@ -74,10 +74,6 @@
                 <div class="d-flex align-items-center">
                     <!-- Logged in user -->
                     <?php if ($user->isLoggedIn()) { ?>
-                        <!-- Notification icon -->
-                        <a href="#" class="nav-link me-3 text-secondary">
-                            <i class="bi bi-bell" style="font-size: 1.3rem;"></i>
-                        </a>
 
                         <!-- obdobie selector -->
 

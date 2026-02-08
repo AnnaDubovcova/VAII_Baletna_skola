@@ -24,16 +24,6 @@ $dayNames = ['Po','Ut','St','Št','Pi','So','Ne'];
     <a class="btn btn-outline-secondary btn-sm" href="<?= $link->url('rozvrhUser.index', ['week' => $nextWeek]) ?>">Ďalší &rarr;</a>
 </div>
 
-<style>
-    .week-grid { display:grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap:12px; }
-    .day-col { border:1px solid #ddd; border-radius:12px; padding:10px; background:#fff; }
-    .day-title { font-weight:700; margin-bottom:8px; }
-    .event-card { border:1px solid #eee; border-radius:12px; padding:8px; margin-top:8px; }
-    .event-time { font-weight:600; }
-    .event-meta { font-size:0.95em; opacity:0.8; }
-    .muted { opacity:0.65; }
-    @media (max-width: 900px) { .week-grid { grid-template-columns: 1fr; } }
-</style>
 
 <div class="week-grid">
     <?php $i = 0; foreach ($days as $dayKey => $day): ?>
