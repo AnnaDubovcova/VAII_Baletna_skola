@@ -1,30 +1,60 @@
-# About
+Popis projektu
+Tento projekt je semestrálna práca vytvorená v PHP pomocou dodaného MVC frameworku.
+Aplikácia slúži na správu období, kurzov, skupín, rozvrhov, udalostí a prihlášok používateľov s rozlíšením rolí administrátor a používateľ.
 
-This framework was created to support the teaching of the subject Development of intranet and intranet applications 
-(VAII) at the [Faculty of Management Science and Informatics](https://www.fri.uniza.sk/) of
-[University of Žilina](https://www.uniza.sk/). Framework demonstrates how the MVC architecture works.
+Použité technológie
 
-# Instructions and documentation 
+PHP 8
+MVC architektúra
+MariaDB
+Docker, Docker Compose
+HTML, CSS (Bootstrap)
+JavaScript (AJAX – fetch)
 
-The framework source code is fully commented. In case you need additional information to understand,
-visit the [WIKI stránky](https://github.com/thevajko/vaiicko/wiki/00-%C3%9Avodn%C3%A9-inform%C3%A1cie) (only in Slovak).
+Inštalácia a spustenie
 
-# Docker configuration
+Je potrebné mať nainštalovaný Docker a Docker Compose.
 
-The Framework has a basic configuration for running and debugging web applications in the `<root>/docker` directory. 
-All necessary services are set in `docker-compose.yml` file. After starting them, it creates the following services:
+Postup
 
-- web server (Apache) with the __PHP 8.3__ 
-- MariaDB database server with a created _database_ named according `MYSQL_DATABASE` environment variable
-- Adminer application for MariaDB administration
+Stiahni alebo naklonuj projekt.
 
-## Other notes:
+Prejdi do priečinka /docker.
 
-- __WWW document root__ is set to the `public` in the project directory.
-- The website is available at [http://localhost/](http://localhost/).
-- The server includes an extension for PHP code debugging [__Xdebug 3__](https://xdebug.org/), uses the  
-  port __9003__ and works in "auto-start" mode.
-- PHP contains the __PDO__ extension.
-- The database server is available locally on the port __3306__. The default login details can be found in `.env` file.
-- Adminer is available at [http://localhost:8080/](http://localhost:8080/)
+Spusti aplikáciu príkazom:
 
+docker-compose up
+
+Pri prvom spustení sa automaticky vytvorí a naplní databáza.
+Pri ďalších spusteniach stačí znova spustiť Docker.
+
+Prístup k aplikácii
+
+Aplikácia: http://localhost
+
+Adminer (DB): http://localhost:8080
+
+Docker konfigurácia
+Súbor docker-compose.yml sa nachádza v priečinku /docker a mapuje projektový root cez ./../ do /var/www/html/.
+
+
+Používateľské účty
+
+Administrátor
+
+email: admin@balet.sk
+heslo: AdminHeslo123
+
+
+Používateľ
+
+email: user1@balet.sk
+heslo: UserHeslo123
+
+V databáze sa nachádzajú aj ďalšie testovacie účty.
+
+
+
+Použitie umelej inteligencie
+Pri vývoji aplikácie bol použitý nástroj umelej inteligencie (ChatGPT) ako podpora pri návrhu riešenia, refaktoringu kódu, kontrole chýb a písaní dokumentácie.
+Vygenerovaný kód bol autorom podľa potreby manuálne upravený a integrovaný do výslednej aplikácie.
