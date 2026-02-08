@@ -70,11 +70,14 @@
                                 Upraviť
                             </a>
 
-                            <a class="btn btn-sm btn-outline-danger"
-                               href="<?= $link->url('osoba.delete', ['id_osoba' => $o->getId()]) ?>"
-                               onclick="return confirm('Naozaj chcete zmazať túto osobu?');">
-                                Zmazať
-                            </a>
+                            <form action="<?= $link->url('osoba.delete') ?>" method="post"
+                                  class="d-inline-block"
+                                  onsubmit="return confirm('Naozaj chceš zmazať túto osobu?');">
+                                <input type="hidden" name="id_osoba" value="<?= $o->getId() ?>">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    Zmazať
+                                </button>
+                            </form>
                         </td>
                     </tr>
                 <?php endforeach; ?>

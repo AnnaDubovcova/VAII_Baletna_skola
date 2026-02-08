@@ -60,12 +60,18 @@
                         </a>
 
                         <?php if ($p->getStav() === 'nova'): ?>
-                            <a class="btn btn-sm btn-outline-danger ms-2"
-                               href="<?= $link->url('prihlaska.cancel', ['id' => $p->getId()]) ?>"
-                               onclick="return confirm('Naozaj chcete zrušiť prihlášku?');">
-                                Zrušiť
-                            </a>
+                            <form method="post"
+                                  action="<?= $link->url('prihlaska.cancel') ?>"
+                                  class="d-inline"
+                                  onsubmit="return confirm('Naozaj chcete zrušiť prihlášku?');">
+                                <input type="hidden" name="id" value="<?= (int)$p->getId() ?>">
+                                <button type="submit" class="btn btn-sm btn-outline-danger ms-2">
+                                    Zrušiť
+                                </button>
+                            </form>
                         <?php endif; ?>
+
+
                     </td>
 
 

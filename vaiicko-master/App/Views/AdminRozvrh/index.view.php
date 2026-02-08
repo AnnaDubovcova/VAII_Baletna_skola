@@ -20,16 +20,6 @@ $dayNames = ['Po','Ut','St','Št','Pi','So','Ne'];
     <a class="btn btn-outline-secondary btn-sm" href="<?= $link->url('adminRozvrh.index', ['week' => $nextWeek]) ?>">Ďalší &rarr;</a>
 </div>
 
-<style>
-    .week-grid { display:grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap:12px; }
-    .day-col { border:1px solid #ddd; border-radius:12px; padding:10px; background:#fff; }
-    .day-title { font-weight:700; margin-bottom:8px; }
-    .event-card { border:1px solid #eee; border-radius:12px; padding:8px; margin-top:8px; }
-    .event-time { font-weight:600; }
-    .event-meta { font-size:0.95em; opacity:0.8; }
-    .muted { opacity:0.65; }
-    @media (max-width: 900px) { .week-grid { grid-template-columns: 1fr; } }
-</style>
 
 <div class="week-grid">
     <?php
@@ -76,11 +66,20 @@ $dayNames = ['Po','Ut','St','Št','Pi','So','Ne'];
                                 Upraviť
                             </a>
 
-                            <a class="btn btn-outline-danger btn-sm"
-                               href="<?= $link->url('udalost.delete', ['id_udalost' => $e['id_udalost'], 'return_to' => $returnTo]) ?>"
-                               onclick="return confirm('Naozaj zmazať udalosť?');">
-                                Zmazať
-                            </a>
+
+                            <form method="post"
+                                  action="<?= $link->url('udalost.delete') ?>"
+                                  class="d-inline"
+                                  onsubmit="return confirm('Naozaj zmazať udalosť?');">
+
+                                <input type="hidden" name="id_udalost" value="<?= (int)$e['id_udalost'] ?>">
+                                <input type="hidden" name="return_to" value="<?= htmlspecialchars($returnTo) ?>">
+
+                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                    Zmazať
+                                </button>
+                            </form>
+
 
                         </div>
                     </div>

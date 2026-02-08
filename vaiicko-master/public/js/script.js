@@ -525,28 +525,57 @@ document.addEventListener('DOMContentLoaded', function () {
         // --- Events ---
 
         // Delegácia klikov v tabuľke: zachytí klik na approve/reject aj pre novovygenerované riadky
-        tbody.addEventListener('click', function (e) {
-            const approve = e.target.closest('a.js-approve');
-            const reject = e.target.closest('a.js-reject');
-
-            if (!approve && !reject) return;
+        tbody.addEventListener('click', async function (e) {
+            const a = e.target.closest('a.js-approve, a.js-reject');
+            if (!a) return;
 
             e.preventDefault();
 
-            if (approve) {
-                decide(approve.href, 'Schváliť prihlášku?')
-                    .catch(err => {
-                        console.error(err);
-                        alert('Nastala chyba pri schvaľovaní.');
-                    });
-            } else if (reject) {
-                decide(reject.href, 'Zamietnuť prihlášku?')
-                    .catch(err => {
-                        console.error(err);
-                        alert('Nastala chyba pri zamietnutí.');
-                    });
+            const isApprove = a.classList.contains('js-approve');
+            const ok = window.confirm(isApprove
+                ? 'Schváliť prihlášku?'
+                : 'Zamietnuť prihlášku?');
+
+            if (!ok) return;
+
+            try {
+                // POST je povinný (controller to vyžaduje)
+                const actionUrl = new URL(a.href, window.location.origin);
+                actionUrl.searchParams.set('ajax', '1');
+                const res = await fetch(actionUrl.toString(), {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json' }
+                });
+
+
+                // Ak nie je ok, vytiahni text (často HTML chybová stránka) a vypíš ho do konzoly
+                if (!res.ok) {
+                    const text = await res.text().catch(() => '');
+                    console.error('Approve/reject HTTP error:', res.status, text);
+                    throw new Error('HTTP ' + res.status);
+                }
+
+                // Skús JSON, ak to nie je JSON, tiež logni text
+                let data;
+                try {
+                    data = await res.json();
+                } catch (err) {
+                    const text = await res.text().catch(() => '');
+                    console.error('Approve/reject invalid JSON:', text);
+                    throw err;
+                }
+
+                if (!data.ok) throw new Error('AJAX approve/reject failed');
+
+                // po úspechu refresh tabuľky cez AJAX filter
+                await loadFiltered();
+
+            } catch (err) {
+                console.error(err);
+                alert('Nastala chyba pri spracovaní požiadavky.');
             }
         });
+
 
         // Keď sa zmení filter (select), načítame tabuľku cez AJAX.
         form.addEventListener('change', function () {

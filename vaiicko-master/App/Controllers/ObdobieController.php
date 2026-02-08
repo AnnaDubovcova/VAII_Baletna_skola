@@ -112,7 +112,7 @@ class ObdobieController extends AdminController
 
                 if ($isFkViolation) {
                     return $this->redirect($this->url('obdobie.index', [
-                        'error' => 'Obdobie nie je možné zmazať, pretože existujú kurzy, ktoré naň odkazujú.'
+                        'error' => 'Obdobie nie je možné zmazať, pretože existujú kurzy, skupiny alebo udalosti ktoré naň odkazujú.'
                     ]));
                 }
             }

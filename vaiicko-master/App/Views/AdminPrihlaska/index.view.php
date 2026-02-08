@@ -99,26 +99,15 @@
 
                     <?php if ($stavP === 'nova'): ?>
                         <a class="btn btn-sm btn-outline-success ms-2 js-approve"
-                           href="<?= $link->url('adminPrihlaska.approve', [
-                                   'id' => $pid,
-                                   'ajax' => 1,
-                                   'return_to' => $link->url('adminPrihlaska.index', [
-                                           'stav' => $stav,
-                                   ])
-                           ]) ?>">
+                           href="<?= $link->url('adminPrihlaska.approve', ['id' => $pid]) ?>">
                             Schváliť
                         </a>
 
                         <a class="btn btn-sm btn-outline-danger ms-2 js-reject"
-                           href="<?= $link->url('adminPrihlaska.reject', [
-                                   'id' => $pid,
-                                   'ajax' => 1,
-                                   'return_to' => $link->url('adminPrihlaska.index', [
-                                           'stav' => $stav,
-                                   ])
-                           ]) ?>">
+                           href="<?= $link->url('adminPrihlaska.reject', ['id' => $pid]) ?>">
                             Zamietnuť
                         </a>
+
                     <?php endif; ?>
                 </td>
             </tr>

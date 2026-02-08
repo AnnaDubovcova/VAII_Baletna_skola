@@ -25,7 +25,7 @@
                     <th>Popis</th>
                     <td>
                         <?php $popis = trim((string)$skupina->getPopis()); ?>
-                        <?= $popis !== '' ? nl2br(htmlspecialchars($popis)) : '\u2014' ?>
+                        <?= $popis !== '' ? nl2br(htmlspecialchars($popis)) : '-' ?>
                     </td>
                 </tr>
                 </tbody>

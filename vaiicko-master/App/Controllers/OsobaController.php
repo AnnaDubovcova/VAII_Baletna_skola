@@ -92,6 +92,9 @@ class OsobaController extends OsobaBaseController
      */
     public function delete(Request $request): Response
     {
+        if (!$request->isPost()) {
+            throw new HttpException(405, 'Method Not Allowed');
+        }
         $idOsoba = (int)$request->value('id_osoba');
         if ($idOsoba <= 0) {
             throw new HttpException(400, 'Neplatné ID osoby.');

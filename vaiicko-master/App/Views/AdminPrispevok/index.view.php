@@ -152,14 +152,19 @@ function prispevokSnippet(?string $text, int $max = 140): string {
                            ]) ?>">
                             Upraviť
                         </a>
-                        <a class="btn btn-outline-danger btn-sm"
-                           href="<?= $link->url('adminPrispevok.delete', [
-                                   'id_prispevok' => $p->getId(),
-                                   'return_to' => $selfUrl
-                           ]) ?>"
-                           onclick="return confirm('Naozaj zmazať príspevok?');">
-                            Zmazať
-                        </a>
+                        <form method="post"
+                              action="<?= $link->url('adminPrispevok.delete') ?>"
+                              class="d-inline"
+                              onsubmit="return confirm('Naozaj zmazať príspevok?');">
+
+                            <input type="hidden" name="id_prispevok" value="<?= (int)$p->getId() ?>">
+                            <input type="hidden" name="return_to" value="<?= htmlspecialchars($selfUrl) ?>">
+
+                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                Zmazať
+                            </button>
+                        </form>
+
                     </td>
                 </tr>
             <?php endforeach; ?>

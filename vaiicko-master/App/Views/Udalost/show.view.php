@@ -32,14 +32,6 @@
         Upraviť
     </a>
 
-    <a class="btn btn-sm btn-outline-danger"
-       href="<?= $link->url('udalost.delete', [
-               'id_udalost' => (int)$udalost->getId(),
-               'return_to' => !empty($returnTo) ? $returnTo : null
-       ]) ?>"
-       onclick="return confirm('Naozaj chcete zmazať túto udalosť?');">
-        Zmazať
-    </a>
 </div>
 
 <div class="card mb-3">

@@ -74,11 +74,16 @@
                            href="<?= $link->url('udalost.edit', ['id_udalost' => $uid]) ?>">
                             Upraviť
                         </a>
-                        <a class="btn btn-sm btn-outline-danger ms-2"
-                           href="<?= $link->url('udalost.delete', ['id_udalost' => $uid]) ?>"
-                           onclick="return confirm('Naozaj chcete zmazať túto udalosť?');">
-                            Zmazať
-                        </a>
+                        <!-- ZMAZAŤ -->
+                        <form action="<?= $link->url('udalost.delete') ?>"
+                              method="post"
+                              class="d-inline-block"
+                              onsubmit="return confirm('Naozaj chceš zmazať túto udalosť?');">
+                            <input type="hidden" name="id_udalost" value="<?= $uid ?>">
+                            <button type="submit" class="btn btn-sm btn-outline-danger ms-2">
+                                Zmazať
+                            </button>
+                        </form>
                     </td>
                 </tr>
             <?php endforeach; ?>

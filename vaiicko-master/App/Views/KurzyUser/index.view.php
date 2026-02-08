@@ -73,17 +73,27 @@
                         <?php $stav = $stavByKurzId[(int)$k->getId()] ?? null; ?>
 
                         <?php if ($stav === null): ?>
-                            <a class="btn btn-sm btn-primary"
-                               href="<?= $link->url('prihlaska.create', ['id_kurz' => $k->getId()]) ?>">
-                                Prihlásiť
-                            </a>
+                            <form method="post"
+                                  action="<?= $link->url('prihlaska.create') ?>"
+                                  class="d-inline">
+                                <input type="hidden" name="id_kurz" value="<?= (int)$k->getId() ?>">
+                                <button type="submit" class="btn btn-sm btn-primary">
+                                    Prihlásiť
+                                </button>
+                            </form>
+
 
                         <?php elseif ($stav === 'zrusena'): ?>
-                            <a class="btn btn-sm btn-primary"
-                               href="<?= $link->url('prihlaska.create', ['id_kurz' => $k->getId()]) ?>"
-                               onclick="return confirm('Chcete podať prihlášku znova?');">
-                                Prihlásiť znova
-                            </a>
+                            <form method="post"
+                                  action="<?= $link->url('prihlaska.create') ?>"
+                                  class="d-inline"
+                                  onsubmit="return confirm('Chcete podať prihlášku znova?');">
+                                <input type="hidden" name="id_kurz" value="<?= (int)$k->getId() ?>">
+                                <button type="submit" class="btn btn-sm btn-primary">
+                                    Prihlásiť znova
+                                </button>
+                            </form>
+
 
                         <?php else: ?>
                             <span class="badge bg-secondary"><?= htmlspecialchars($stav) ?></span>

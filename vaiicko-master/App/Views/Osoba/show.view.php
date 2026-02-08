@@ -29,11 +29,11 @@
                 </tr>
                 <tr>
                     <th>Email</th>
-                    <td><?= htmlspecialchars((string)($osoba->getEmail() ?? '\u2014')) ?></td>
+                    <td><?= htmlspecialchars((string)($osoba->getEmail() ?? '-')) ?></td>
                 </tr>
                 <tr>
                     <th>Telefón</th>
-                    <td><?= htmlspecialchars((string)($osoba->getTelefon() ?? '\u2014')) ?></td>
+                    <td><?= htmlspecialchars((string)($osoba->getTelefon() ?? '-')) ?></td>
                 </tr>
                 </tbody>
             </table>
@@ -51,19 +51,19 @@
                 <tbody>
                 <tr>
                     <th style="width: 220px;">Meno</th>
-                    <td><?= htmlspecialchars((string)($osoba->getZastupcaMeno() ?? '\u2014')) ?></td>
+                    <td><?= htmlspecialchars((string)($osoba->getZastupcaMeno() ?? '-')) ?></td>
                 </tr>
                 <tr>
                     <th>Priezvisko</th>
-                    <td><?= htmlspecialchars((string)($osoba->getZastupcaPriezvisko() ?? '\u2014')) ?></td>
+                    <td><?= htmlspecialchars((string)($osoba->getZastupcaPriezvisko() ?? '-')) ?></td>
                 </tr>
                 <tr>
                     <th>Email</th>
-                    <td><?= htmlspecialchars((string)($osoba->getZastupcaEmail() ?? '\u2014')) ?></td>
+                    <td><?= htmlspecialchars((string)($osoba->getZastupcaEmail() ?? '-')) ?></td>
                 </tr>
                 <tr>
                     <th>Telefón</th>
-                    <td><?= htmlspecialchars((string)($osoba->getZastupcaTelefon() ?? '\u2014')) ?></td>
+                    <td><?= htmlspecialchars((string)($osoba->getZastupcaTelefon() ?? '-')) ?></td>
                 </tr>
                 </tbody>
             </table>
@@ -97,11 +97,6 @@
                 Upraviť
             </a>
 
-            <a href="<?= $link->url('osoba.delete', ['id_osoba' => $osoba->getId()]) ?>"
-               class="btn btn-outline-danger"
-               onclick="return confirm('Naozaj chcete zmazať túto osobu?');">
-                Zmazať
-            </a>
         <?php endif; ?>
 
     </div>

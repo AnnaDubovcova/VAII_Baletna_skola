@@ -7,7 +7,7 @@ use App\Models\Skupina;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
 use App\Models\Kurz;
-use HttpException;
+use Framework\Http\HttpException;
 
 
 class SkupinaController extends SkupinaBaseController
@@ -42,6 +42,9 @@ class SkupinaController extends SkupinaBaseController
         $errors = [];
         $skupina = new Skupina();
 
+
+        // default: aktívne obdobie z kontextu (len pri prvom otvorení formulára)
+        $skupina->setIdObdobie($this->requireActiveObdobieId());
         // Potrebujeme zoznam období na výber vo formulári
         $obdobia = Obdobie::getAll();
 

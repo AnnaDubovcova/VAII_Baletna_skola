@@ -22,6 +22,8 @@ class KurzController extends AdminController
             'nazov ASC'
         );
 
+
+
         $obdobia = Obdobie::getAll('1=1', [], 'datum_od DESC');
         $typy = TypKurzu::getAll('1=1', [], 'nazov ASC');
 
@@ -47,6 +49,9 @@ class KurzController extends AdminController
     {
         $errors = [];
         $kurz = new Kurz();
+
+        // default: aktívne obdobie z kontextu
+        $kurz->setIdObdobie($this->requireActiveObdobieId());
 
         $obdobia = Obdobie::getAll();
         $typy = TypKurzu::getAll();
