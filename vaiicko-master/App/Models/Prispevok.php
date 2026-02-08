@@ -110,7 +110,7 @@ class Prispevok extends Model
     public static function getOneForOsoba(int $idPrispevok, int $idOsoba, int $idObdobie): ?self
     {
         $where = "
-        id_prispevok = :id AND 
+        id_prispevok = :id AND (
                 (viditelnost = 'verejny')
                 OR (viditelnost = 'obdobie' AND id_obdobie = :o)
             OR (
@@ -133,6 +133,7 @@ class Prispevok extends Model
                     WHERE os.id_osoba = :os
             AND u.id_obdobie = :o
                 )
+            )
             )
         ";
 

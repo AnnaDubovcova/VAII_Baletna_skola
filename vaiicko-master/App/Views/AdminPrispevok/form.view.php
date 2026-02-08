@@ -6,9 +6,14 @@
 /** @var ?string $returnTo */
 /** @var array $ctx */
 /** @var array|null $context */
+/** @var \App\Models\PrispevokSubor[] $subory */
+
+$subory = $subory ?? [];
+
 
 $ctx['obdobia'] = $ctx['obdobia'] ?? [];
 $ctx['activeObdobieId'] = $ctx['activeObdobieId'] ?? null;
+
 
 $isEdit = $formAction === 'edit';
 $isFixed = is_array($context) && !empty($context['type']);
@@ -91,7 +96,7 @@ if ($isEdit) {
                 $v = (string)$prispevok->getViditelnost();
                 $opts = [
                         'verejny' => 'Verejný (bez prihlásenia)',
-                        'obdobie' => 'Pre obdobie (prihlásení)',
+                        'obdobie' => 'Pre prihlásených (priradí sa k aktívnemu obdobiu)',
                 ];
                 foreach ($opts as $key => $label):
                     ?>
@@ -112,6 +117,7 @@ if ($isEdit) {
 
     <?php endif; ?>
 
+
     <div class="d-flex gap-2">
         <button class="btn btn-primary" type="submit">
             <?= $isEdit ? 'Uložiť zmeny' : 'Vytvoriť príspevok' ?>
@@ -123,3 +129,89 @@ if ($isEdit) {
         </a>
     </div>
 </form>
+
+<?php if ($isEdit): ?>
+    <hr class="my-4">
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Prílohy</h5>
+
+            <form method="post"
+                  action="<?= $link->url('adminPrispevokSubor.upload') ?>"
+                  enctype="multipart/form-data"
+                  class="mb-3 d-flex gap-2 align-items-center flex-wrap">
+
+                <input type="hidden" name="id_prispevok" value="<?= (int)$prispevok->getId() ?>">
+
+                <?php if (!empty($returnTo)): ?>
+                    <input type="hidden" name="return_to"
+                           value="<?= htmlspecialchars($link->url('adminPrispevok.edit', [
+                                   'id_prispevok' => $prispevok->getId(),
+                                   'return_to' => $returnTo
+                           ])) ?>">
+                <?php endif; ?>
+
+                <input class="form-control" type="file" name="subor" required>
+                <button class="btn btn-primary" type="submit">Nahrať</button>
+
+                <div class="form-text">
+                    Povolené: pdf, jpg, png, docx (max 10 MB)
+                </div>
+            </form>
+
+            <?php if (empty($subory)): ?>
+                <div class="alert alert-secondary mb-0">Zatiaľ nie sú nahraté žiadne prílohy.</div>
+            <?php else: ?>
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle mb-0">
+                        <thead>
+                        <tr>
+                            <th>Názov</th>
+                            <th>Veľkosť</th>
+                            <th>Vytvorené</th>
+                            <th class="text-end">Akcie</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <?php foreach ($subory as $s): ?>
+                            <tr>
+                                <td><?= htmlspecialchars((string)$s->getOriginalName()) ?></td>
+                                <td><?= number_format(((int)$s->getSize()) / 1024, 1, ',', ' ') ?> KB</td>
+                                <td>
+                                    <?= $s->getCreatedAt() ? date('d.m.Y H:i', strtotime((string)$s->getCreatedAt())) : '' ?>
+                                </td>
+                                <td class="text-end">
+                                    <a class="btn btn-sm btn-outline-secondary"
+                                       href="<?= $link->url('prispevokSubor.download', ['id_prispevok_subor' => $s->getId()]) ?>">
+                                        Stiahnuť
+                                    </a>
+
+                                    <form method="post"
+                                          action="<?= $link->url('adminPrispevokSubor.delete') ?>"
+                                          class="d-inline-block"
+                                          onsubmit="return confirm('Naozaj zmazať prílohu?');">
+                                        <input type="hidden" name="id_prispevok_subor" value="<?= (int)$s->getId() ?>">
+                                        <input type="hidden" name="return_to"
+                                               value="<?= htmlspecialchars($link->url('adminPrispevok.edit', [
+                                                       'id_prispevok' => $prispevok->getId(),
+                                                       'return_to' => $returnTo ?: $link->url('adminPrispevok.index')
+                                               ])) ?>">
+                                        <button class="btn btn-sm btn-outline-danger" type="submit">Zmazať</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+
+        </div>
+    </div>
+<?php else: ?>
+    <div class="alert alert-info mt-3">
+        Prílohy bude možné pridať po vytvorení príspevku (v úprave alebo detaile).
+    </div>
+<?php endif; ?>
+

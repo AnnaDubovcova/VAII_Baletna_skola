@@ -152,6 +152,9 @@ class AdminPrispevokController extends AdminController
         $returnTo = $this->getSafeReturnTo($request);
         $ctx = $this->getContextOptions();
 
+        $subory = PrispevokSubor::getAllForPrispevok((int)$prispevok->getId());
+
+
         if ($request->isPost()) {
             // rozhodni podľa typu
             $v = (string)$prispevok->getViditelnost();
@@ -203,6 +206,7 @@ class AdminPrispevokController extends AdminController
             'returnTo' => $returnTo,
             'ctx' => $ctx,
             'context' => $context,
+            'subory' => $subory,
         ], 'form');
     }
 
