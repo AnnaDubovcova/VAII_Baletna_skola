@@ -15,11 +15,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- Favicons -->
-    <link rel="apple-touch-icon" sizes="180x180" href="<?= $link->asset('favicons/apple-touch-icon.png') ?>">
-    <link rel="icon" type="image/png" sizes="32x32" href="<?= $link->asset('favicons/favicon-32x32.png') ?>">
-    <link rel="icon" type="image/png" sizes="16x16" href="<?= $link->asset('favicons/favicon-16x16.png') ?>">
-    <link rel="manifest" href="<?= $link->asset('favicons/site.webmanifest') ?>">
-    <link rel="shortcut icon" href="<?= $link->asset('favicons/favicon.ico') ?>">
+    <link rel="apple-touch-icon" sizes="180x180" href="<?= $link->asset('favicon_balet/apple-touch-icon.png') ?>">
+    <link rel="icon" type="image/png" sizes="32x32" href="<?= $link->asset('favicon_balet/favicon-32x32.png') ?>">
+    <link rel="icon" type="image/png" sizes="16x16" href="<?= $link->asset('favicon_balet/favicon-16x16.png') ?>">
+    <link rel="manifest" href="<?= $link->asset('favicon_balet/site.webmanifest') ?>">
+    <link rel="shortcut icon" href="<?= $link->asset('favicon_balet/favicon.ico') ?>">
 
     <!-- Bootstrap CSS -->
     <link
