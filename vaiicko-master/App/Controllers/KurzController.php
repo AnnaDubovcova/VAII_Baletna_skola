@@ -8,6 +8,7 @@ use App\Models\TypKurzu;
 use Framework\Core\BaseController;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
+use Framework\Http\HttpException;
 
 class KurzController extends AdminController
 {
@@ -84,7 +85,7 @@ class KurzController extends AdminController
         $kurz = Kurz::getOne($id);
 
         if ($kurz === null) {
-            throw new \Exception('Kurz nenájdený.');
+            throw new HttpException(404, 'Kurz nenájdený.');
         }
 
         $errors = [];
@@ -120,13 +121,17 @@ class KurzController extends AdminController
 
     public function delete(Request $request): Response
     {
+        if (!$request->isPost()) {
+            throw new HttpException(405, 'Method Not Allowed');
+        }
+
         $id = (int)$request->value('id_kurz');
         $kurz = Kurz::getOne($id);
 
         if ($kurz !== null) {
             $kurz->delete();
         } else {
-            throw new \Exception('Kurz nenájdený.');
+            throw new HttpException(404, 'Kurz nenájdený.');
         }
 
         return $this->redirect($this->url('kurz.index'));

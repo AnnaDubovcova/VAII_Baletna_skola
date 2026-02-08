@@ -7,6 +7,7 @@ use App\Models\Skupina;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
 use App\Models\Kurz;
+use HttpException;
 
 
 class SkupinaController extends SkupinaBaseController
@@ -73,7 +74,7 @@ class SkupinaController extends SkupinaBaseController
         $skupina = Skupina::getOne($id_skupina);
 
         if ($skupina === null) {
-            throw new \Exception('Skupina nenájdená.');
+            throw new HttpException(404, 'Skupina nenájdená.');
         }
 
         $errors = [];
@@ -109,7 +110,7 @@ class SkupinaController extends SkupinaBaseController
         if ($skupina !== null) {
             $skupina->delete();
         } else {
-            throw new \Exception('Skupina nenájdená.');
+            throw new HttpException(404, 'Skupina nenájdená.');
         }
 
         return $this->redirect($this->url('skupina.index'));
@@ -119,12 +120,12 @@ class SkupinaController extends SkupinaBaseController
     {
         $id = (int)$request->value('id_skupina');
         if ($id <= 0) {
-            throw new \Framework\Http\HttpException(400, 'Neplatné ID skupiny.');
+            throw new HttpException(400, 'Neplatné ID skupiny.');
         }
 
         $skupina = Skupina::getOne($id);
         if ($skupina === null) {
-            throw new \Framework\Http\HttpException(404, 'Skupina nebola nájdená.');
+            throw new HttpException(404, 'Skupina nebola nájdená.');
         }
 
         $returnTo = (string)$request->value('return_to');
@@ -137,7 +138,7 @@ class SkupinaController extends SkupinaBaseController
             }
 
             if (!$skupina->hasMember((int)$activeOsoba->getId())) {
-                throw new \Framework\Http\HttpException(403, 'Nemáte oprávnenie zobraziť túto skupinu.');
+                throw new HttpException(403, 'Nemáte oprávnenie zobraziť túto skupinu.');
             }
 
             return $this->html([
@@ -206,22 +207,28 @@ class SkupinaController extends SkupinaBaseController
     public function members(Request $request): Response
     {
         $id = (int)$request->value('id_skupina');
-        $skupina = Skupina::getOne($id);
+        if ($id <= 0) {
+            throw new HttpException(400, 'Neplatné ID skupiny.');
+        }
 
+        $skupina = Skupina::getOne($id);
         if ($skupina === null) {
-            throw new \Exception('Skupina neexistuje.');
+            throw new HttpException(404, 'Skupina neexistuje.');
         }
 
         $obdobieId = (int)$skupina->getIdObdobie();
         if ($obdobieId <= 0) {
-            throw new \Exception('Skupina nemá platné obdobie.');
+            throw new HttpException(500, 'Skupina nemá platné obdobie.');
         }
 
         $q = trim((string)$request->value('q'));
-        $idKurz = (int)$request->value('id_kurz');
-        if ($idKurz <= 0) $idKurz = null;
 
-        // kurzy len v období skupiny (na filter)
+        $idKurz = (int)$request->value('id_kurz');
+        if ($idKurz <= 0) {
+            $idKurz = null;
+        }
+
+        // Kurzy len v období skupiny (filter)
         $kurzy = Kurz::getAll(
             'id_obdobie = :o',
             ['o' => $obdobieId],
@@ -239,64 +246,83 @@ class SkupinaController extends SkupinaBaseController
     }
 
 
+
     public function addMember(Request $request): Response
     {
+        if (!$request->isPost()) {
+            throw new HttpException(405, 'Metóda nie je povolená.');
+        }
+
         $idSkupina = (int)$request->value('id_skupina');
         $idOsoba   = (int)$request->value('id_osoba');
         $q         = trim((string)$request->value('q'));
 
         $idKurz = (int)$request->value('id_kurz');
-        if ($idKurz <= 0) $idKurz = null;
+        if ($idKurz <= 0) {
+            $idKurz = null;
+        }
 
-
-        $skupina = Skupina::getOne($idSkupina);
-        if ($skupina === null) {
-            throw new \Exception('Skupina neexistuje.');
+        if ($idSkupina <= 0) {
+            throw new HttpException(400, 'Neplatné ID skupiny.');
         }
 
         if ($idOsoba <= 0) {
-            throw new \Exception('Neplatná osoba.');
+            throw new HttpException(400, 'Neplatná osoba.');
         }
 
-        // Voliteľné, ale odporúčané: povoliť pridať len kandidáta podľa obdobia skupiny
+        $skupina = Skupina::getOne($idSkupina);
+        if ($skupina === null) {
+            throw new HttpException(404, 'Skupina neexistuje.');
+        }
+
         $obdobieId = (int)$skupina->getIdObdobie();
         if ($obdobieId <= 0) {
-            throw new \Exception('Skupina nemá platné obdobie.');
+            throw new HttpException(500, 'Skupina nemá platné obdobie.');
         }
 
         if (!$skupina->isCandidateOsoba($obdobieId, $idOsoba)) {
-            throw new \Exception('Osobu nie je možné pridať do skupiny (nespĺňa podmienky pre obdobie).');
+            throw new HttpException(
+                403,
+                'Osobu nie je možné pridať do skupiny (nespĺňa podmienky pre obdobie).'
+            );
         }
 
         $skupina->addOsoba($idOsoba);
 
         return $this->redirect($this->url('skupina.members', [
             'id_skupina' => $idSkupina,
-            'q' => $q,
-            'id_kurz' => $idKurz,
+            'q'          => $q,
+            'id_kurz'    => $idKurz,
         ]));
     }
-
     public function removeMember(Request $request): Response
     {
+        if (!$request->isPost()) {
+            throw new HttpException(405, 'Metóda nie je povolená.');
+        }
+
         $idSkupina = (int)$request->value('id_skupina');
         $idOsoba   = (int)$request->value('id_osoba');
         $q         = trim((string)$request->value('q'));
 
-        $skupina = Skupina::getOne($idSkupina);
-        if ($skupina === null) {
-            throw new \Exception('Skupina neexistuje.');
+        if ($idSkupina <= 0) {
+            throw new HttpException(400, 'Neplatné ID skupiny.');
         }
 
         if ($idOsoba <= 0) {
-            throw new \Exception('Neplatná osoba.');
+            throw new HttpException(400, 'Neplatná osoba.');
+        }
+
+        $skupina = Skupina::getOne($idSkupina);
+        if ($skupina === null) {
+            throw new HttpException(404, 'Skupina neexistuje.');
         }
 
         $skupina->removeOsoba($idOsoba);
 
         return $this->redirect($this->url('skupina.members', [
             'id_skupina' => $idSkupina,
-            'q' => $q,
+            'q'          => $q,
         ]));
     }
 

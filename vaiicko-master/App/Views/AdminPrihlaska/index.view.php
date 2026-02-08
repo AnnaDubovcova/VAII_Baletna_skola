@@ -47,6 +47,8 @@
 <?php if (empty($prihlasky)): ?>
     <div class="alert alert-secondary">Žiadne prihlášky podľa filtra.</div>
 <?php else: ?>
+    <div class="table-responsive table-sm-scroll">
+
     <table class="table table-striped align-middle">
         <thead>
         <tr>
@@ -123,4 +125,5 @@
         <?php endforeach; ?>
         </tbody>
     </table>
+</div>
 <?php endif; ?>

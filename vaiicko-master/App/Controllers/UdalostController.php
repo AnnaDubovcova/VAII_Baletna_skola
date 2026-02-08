@@ -7,6 +7,7 @@ use App\Models\Udalost;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
 use Framework\DB\Connection;
+use Framework\Http\HttpException;
 
 class UdalostController extends AdminController
 {
@@ -17,7 +18,7 @@ class UdalostController extends AdminController
     {
         $obdobieId = $this->getActiveObdobieId();
         if ($obdobieId === null) {
-            throw new \Exception('Nie je zvolené aktívne obdobie.');
+            throw new HttpException(400, 'Nie je zvolené aktívne obdobie.');
         }
 
         $udalosti = Udalost::getAll(
@@ -45,7 +46,7 @@ class UdalostController extends AdminController
         $udalost = Udalost::getOne($id);
 
         if ($udalost === null) {
-            throw new \Exception('Udalosť nenájdená.');
+            throw new HttpException(404, 'Udalosť nenájdená.');
         }
 
         $skupiny = $this->getSkupinyForUdalost($id);
@@ -118,7 +119,7 @@ class UdalostController extends AdminController
         $udalost = Udalost::getOne($id);
 
         if ($udalost === null) {
-            throw new \Exception('Udalosť nenájdená.');
+            throw new HttpException(404, 'Udalosť nenájdená.');
         }
 
         $errors = [];
@@ -171,11 +172,15 @@ class UdalostController extends AdminController
      */
     public function delete(Request $request): Response
     {
+        if (!$request->isPost()) {
+            throw new HttpException(405, 'Method Not Allowed');
+        }
+
         $id = (int)$request->value('id_udalost');
 
         $udalost = Udalost::getOne($id);
         if ($udalost === null) {
-            throw new \Exception('Udalosť nenájdená.');
+            throw new HttpException(404, 'Udalosť nenájdená.');
         }
 
         $returnTo = $this->getSafeReturnTo($request);

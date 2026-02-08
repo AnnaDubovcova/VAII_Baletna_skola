@@ -4,6 +4,7 @@
 html,
 body {
     height: 100%;
+    overflow-x: hidden;
 }
 
 body {
@@ -127,15 +128,8 @@ table.table tbody tr:hover {
     width: 100%;
 }
 
-.table td, .table th {
-    vertical-align: middle;
-}
 
-/* Nech sa tabuľka nerozťahuje do šírky kvôli dlhému slovu */
-.table td {
-    word-break: break-word;      /* láme aj dlhé reťazce bez medzier */
-    overflow-wrap: anywhere;     /* moderné prehliadače */
-}
+
 
 /* Voliteľné: orezanie názvu na 1 riadok s troma bodkami */
 .table .cell-truncate {
@@ -144,6 +138,22 @@ table.table tbody tr:hover {
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+/* Tabuľky sa scrollujú, nie stránka */
+.table-responsive.table-sm-scroll > .table { min-width: 720px; }
+.table-responsive.table-lg-scroll > .table { min-width: 1100px; }
+
+
+/* Nech sa text neláme po písmenách */
+.table th,
+.table td {
+    vertical-align: middle;
+    white-space: nowrap !important;
+    hyphens: none !important;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+}
+
 
 
 /* -------------------------------------------

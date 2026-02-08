@@ -87,7 +87,7 @@ abstract class AppController extends BaseController
     protected function requireActiveObdobieId(): int
     {
         $id = $this->getActiveObdobieId();
-        if ($id === null) throw new \Exception('Nie je zvolené aktívne obdobie.');
+        if ($id === null) throw new HttpException(400, 'Nie je zvolené aktívne obdobie.');
         return $id;
     }
 

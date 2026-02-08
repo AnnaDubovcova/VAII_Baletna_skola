@@ -362,12 +362,19 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     })();
 
-    (function () {
+    (function initAdminPrihlaskaAjax() {
         const form = document.getElementById('admin-prihlaska-filter');
         const tbody = document.getElementById('admin-prihlasky-body');
 
+        // Tento JS má zmysel len na admin stránke prihlášok
         if (!form || !tbody) return;
 
+        // Zabraňuje posielaniu viacerých requestov naraz (double click / rýchle zmeny filtra)
+        let busy = false;
+
+        /**
+         * Vráti Bootstrap triedu pre badge podľa stavu prihlášky.
+         */
         function badgeClassFor(stav) {
             switch (stav) {
                 case 'nova': return 'bg-secondary';
@@ -378,6 +385,10 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
+        /**
+         * Jednoduchý HTML escape pre bezpečné vloženie textu do DOM cez template string.
+         * (XSS ochrana pri dynamickom renderovaní)
+         */
         function escapeHtml(str) {
             return String(str ?? '')
                 .replaceAll('&', '&amp;')
@@ -387,108 +398,180 @@ document.addEventListener('DOMContentLoaded', function () {
                 .replaceAll("'", '&#039;');
         }
 
+        /**
+         * Načíta JSON odpoveď bezpečným spôsobom.
+         * - kontroluje res.ok
+         * - ak server vráti HTML (napr. error page), vypíše použiteľnú chybu
+         */
+        async function fetchJson(url, options = {}) {
+            const res = await fetch(url, {
+                ...options,
+                headers: {
+                    'Accept': 'application/json',
+                    ...(options.headers || {})
+                }
+            });
+
+            if (!res.ok) {
+                // Skúsime získať text odpovede (môže to byť HTML error page)
+                const text = await res.text().catch(() => '');
+                throw new Error(`HTTP ${res.status} ${res.statusText} ${text ? '- ' + text.slice(0, 120) : ''}`);
+            }
+
+            // Ak odpoveď nie je JSON, res.json() vyhodí chybu -> ošetríme
+            try {
+                return await res.json();
+            } catch (e) {
+                const text = await res.text().catch(() => '');
+                throw new Error(`Response is not valid JSON. ${text ? text.slice(0, 160) : ''}`);
+            }
+        }
+
+        /**
+         * Vyrenderuje 1 riadok tabuľky prihlášok podľa dát zo servera.
+         * Server posiela "rows": [{ id, osoba, kurz, stav, created_at, can_decide, url_show, url_approve, url_reject }]
+         */
         function renderRow(r) {
             const canDecide = !!r.can_decide;
 
-            return `
-        <tr data-id="${r.id}">
-            <td>${r.id}</td>
-            <td>${escapeHtml(r.osoba)}</td>
-            <td>${escapeHtml(r.kurz)}</td>
-            <td>
-                <span class="badge ${badgeClassFor(r.stav)} js-stav">
-                    ${escapeHtml(r.stav)}
-                </span>
-            </td>
-            <td>${escapeHtml(r.created_at)}</td>
-            <td class="text-end">
-                <a class="btn btn-sm btn-outline-secondary"
-                   href="${r.url_show}">
-                    Detail
-                </a>
+            // URL pre approve/reject doplníme o ajax=1 až tu (nie v controlleri ani v HTML)
+            const approveUrl = new URL(r.url_approve, window.location.origin);
+            approveUrl.searchParams.set('ajax', '1');
 
-                ${canDecide ? `
-                <a class="btn btn-sm btn-outline-success ms-2 js-approve"
-                   href="${r.url_approve}&ajax=1">
-                    Schváliť
-                </a>
-                <a class="btn btn-sm btn-outline-danger ms-2 js-reject"
-                   href="${r.url_reject}&ajax=1">
-                    Zamietnuť
-                </a>
-                ` : ``}
-            </td>
-        </tr>`;
+            const rejectUrl = new URL(r.url_reject, window.location.origin);
+            rejectUrl.searchParams.set('ajax', '1');
+
+            return `
+            <tr data-id="${r.id}">
+                <td>${r.id}</td>
+                <td>${escapeHtml(r.osoba)}</td>
+                <td>${escapeHtml(r.kurz)}</td>
+                <td>
+                    <span class="badge ${badgeClassFor(r.stav)} js-stav">
+                        ${escapeHtml(r.stav)}
+                    </span>
+                </td>
+                <td>${escapeHtml(r.created_at)}</td>
+                <td class="text-end">
+                    <a class="btn btn-sm btn-outline-secondary" href="${r.url_show}">
+                        Detail
+                    </a>
+
+                    ${canDecide ? `
+                        <a class="btn btn-sm btn-outline-success ms-2 js-approve" href="${approveUrl.toString()}">
+                            Schváliť
+                        </a>
+                        <a class="btn btn-sm btn-outline-danger ms-2 js-reject" href="${rejectUrl.toString()}">
+                            Zamietnuť
+                        </a>
+                    ` : ``}
+                </td>
+            </tr>
+        `;
         }
 
+        /**
+         * Načíta tabuľku podľa aktuálne zvolených filtrov v <form>.
+         * Používa GET + ajax=1, server vráti JSON s rows.
+         */
         async function loadFiltered() {
             const url = new URL(window.location.href);
+
+            // FormData zoberie hodnoty z <select name="stav"> a <select name="id_kurz"> + hidden inputs c/a
             const fd = new FormData(form);
 
+            // Reset query string, potom nastavíme podľa formu
             url.search = '';
             for (const [k, v] of fd.entries()) {
                 url.searchParams.set(k, v);
             }
+
+            // Povieme controlleru, že chceme JSON
             url.searchParams.set('ajax', '1');
 
-            const res = await fetch(url.toString(), {
-                headers: { 'Accept': 'application/json' }
-            });
-
-            const data = await res.json();
-            if (!data.ok) throw new Error('AJAX filter failed');
+            const data = await fetchJson(url.toString(), { method: 'GET' });
+            if (!data || data.ok !== true || !Array.isArray(data.rows)) {
+                throw new Error('Unexpected JSON structure from adminPrihlaska.index');
+            }
 
             tbody.innerHTML = data.rows.map(renderRow).join('');
         }
 
-        // approve / reject
-        tbody.addEventListener('click', async function (e) {
-            const a = e.target.closest('a.js-approve, a.js-reject');
-            if (!a) return;
+        /**
+         * Vykoná approve/reject akciu nad prihláškou.
+         * - musí byť POST (controller to vyžaduje)
+         * - očakáva JSON { ok: true, id, stav }
+         */
+        async function decide(url, confirmText) {
+            if (busy) return; // ochrana pred double click
+
+            const ok = window.confirm(confirmText);
+            if (!ok) return;
+
+            busy = true;
+            try {
+                const data = await fetchJson(url, { method: 'POST' });
+                if (!data || data.ok !== true) {
+                    throw new Error('AJAX approve/reject returned ok != true');
+                }
+
+                // Jednoduchá stratégia: po zmene stavu znovu načítame tabuľku podľa filtrov
+                await loadFiltered();
+            } finally {
+                busy = false;
+            }
+        }
+
+        // --- Events ---
+
+        // Delegácia klikov v tabuľke: zachytí klik na approve/reject aj pre novovygenerované riadky
+        tbody.addEventListener('click', function (e) {
+            const approve = e.target.closest('a.js-approve');
+            const reject = e.target.closest('a.js-reject');
+
+            if (!approve && !reject) return;
 
             e.preventDefault();
 
-            const isApprove = a.classList.contains('js-approve');
-            const ok = window.confirm(isApprove
-                ? 'Schváliť prihlášku?'
-                : 'Zamietnuť prihlášku?');
-
-            if (!ok) return;
-
-            try {
-                const res = await fetch(a.href, {
-                    headers: { 'Accept': 'application/json' }
-                });
-
-                const data = await res.json();
-                if (!data.ok) throw new Error('AJAX approve/reject failed');
-
-                // vždy znovu načítame tabuľku podľa filtrov
-                await loadFiltered();
-
-            } catch (err) {
-                console.error(err);
-                alert('Nastala chyba pri spracovaní požiadavky.');
+            if (approve) {
+                decide(approve.href, 'Schváliť prihlášku?')
+                    .catch(err => {
+                        console.error(err);
+                        alert('Nastala chyba pri schvaľovaní.');
+                    });
+            } else if (reject) {
+                decide(reject.href, 'Zamietnuť prihlášku?')
+                    .catch(err => {
+                        console.error(err);
+                        alert('Nastala chyba pri zamietnutí.');
+                    });
             }
         });
 
-        // filter change
+        // Keď sa zmení filter (select), načítame tabuľku cez AJAX.
         form.addEventListener('change', function () {
+            if (busy) return;
             loadFiltered().catch(err => {
+                // fallback: ak AJAX zlyhá, spravíme klasický submit (degraduje bez JS)
                 console.error(err);
                 form.submit();
             });
         });
 
-        // filter submit
+        // Pri submit (klik na Filtrovať) zabránime reloadu a spravíme AJAX
         form.addEventListener('submit', function (e) {
             e.preventDefault();
+            if (busy) return;
             loadFiltered().catch(err => {
                 console.error(err);
                 form.submit();
             });
         });
 
+        // Voliteľné: pri načítaní stránky môžeš tabuľku nechať tak (server-side render),
+        // alebo načítať cez AJAX hneď.
+        // loadFiltered().catch(() => {});
     })();
+
 
 });

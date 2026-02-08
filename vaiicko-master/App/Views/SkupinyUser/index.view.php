@@ -23,39 +23,41 @@
     </div>
 <?php else: ?>
 
-    <table class="table table-striped align-middle">
-        <thead>
-        <tr>
-            <th>Názov</th>
-            <th>Popis</th>
-            <th class="text-end">Akcia</th>
-        </tr>
-        </thead>
-        <tbody>
-
-        <?php foreach ($skupiny as $s): ?>
+    <div class="table-responsive table-sm-scroll">
+        <table class="table table-striped align-middle">
+            <thead>
             <tr>
-                <td>
-                    <?= htmlspecialchars((string)$s->getNazov()) ?>
-                </td>
-
-                <td>
-                    <?php $popis = trim((string)$s->getPopis()); ?>
-                    <?= $popis !== '' ? nl2br(htmlspecialchars($popis)) : '<span class="text-muted">—</span>' ?>
-                </td>
-                <td class="text-end">
-                    <a href="<?= $link->url('skupina.show', [
-                            'id_skupina' => $s->getId(),
-                            'return_to' => $_SERVER['REQUEST_URI'] ?? $link->url('skupinyUser.index')
-                    ]) ?>"
-                       class="btn btn-sm btn-outline-primary me-1">
-                        Detail
-                    </a>
-                </td>
+                <th>Názov</th>
+                <th>Popis</th>
+                <th class="text-end">Akcia</th>
             </tr>
-        <?php endforeach; ?>
+            </thead>
+            <tbody>
 
-        </tbody>
-    </table>
+            <?php foreach ($skupiny as $s): ?>
+                <tr>
+                    <td>
+                        <?= htmlspecialchars((string)$s->getNazov()) ?>
+                    </td>
+
+                    <td>
+                        <?php $popis = trim((string)$s->getPopis()); ?>
+                        <?= $popis !== '' ? nl2br(htmlspecialchars($popis)) : '<span class="text-muted">\u2014</span>' ?>
+                    </td>
+                    <td class="text-end">
+                        <a href="<?= $link->url('skupina.show', [
+                                'id_skupina' => $s->getId(),
+                                'return_to' => $_SERVER['REQUEST_URI'] ?? $link->url('skupinyUser.index')
+                        ]) ?>"
+                           class="btn btn-sm btn-outline-primary me-1">
+                            Detail
+                        </a>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+
+            </tbody>
+        </table>
+    </div>
 
 <?php endif; ?>

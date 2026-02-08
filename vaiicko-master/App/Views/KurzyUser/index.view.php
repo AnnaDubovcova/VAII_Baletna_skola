@@ -29,72 +29,72 @@
     </div>
 <?php else: ?>
 
-    <table class="table table-striped align-middle">
-        <thead>
-        <tr>
-        <tr>
-            <th>Názov</th>
-            <th>Typ</th>
-            <th>Obdobie</th>
-            <th>Cena</th>
-            <th class="text-end">Akcia</th>
-        </tr>
-
-        </tr>
-        </thead>
-        <tbody>
-
-        <?php foreach ($kurzy as $k): ?>
-            <?php $kurzId = (int)$k->getId(); ?>
+    <div class="table-responsive table-sm-scroll">
+        <table class="table table-striped align-middle">
+            <thead>
             <tr>
-                <td>
-                    <a href="<?= $link->url('kurzyUser.show', ['id_kurz' => $k->getId()]) ?>">
-                        <?= htmlspecialchars((string)$k->getNazov()) ?>
-                    </a>
-                </td>
-
-                <td>
-                    <?php $typId = (int)$k->getIdTypKurzu(); ?>
-                    <?= isset($typById[$typId]) ? htmlspecialchars((string)$typById[$typId]->getNazov()) : ('#' . $typId) ?>
-                </td>
-
-                <td>
-                    <?php $obdId = (int)$k->getIdObdobie(); ?>
-                    <?= isset($obdobieById[$obdId]) ? htmlspecialchars((string)$obdobieById[$obdId]->getNazov()) : ('#' . $obdId) ?>
-                </td>
-
-                <td>
-                    <?php if ($k->getCena() === null): ?>
-                        —
-                    <?php else: ?>
-                        <?= htmlspecialchars(number_format((float)$k->getCena(), 2, ',', ' ')) ?> €
-                    <?php endif; ?>
-                </td>
-                <td class="text-end">
-                    <?php $stav = $stavByKurzId[(int)$k->getId()] ?? null; ?>
-
-                    <?php if ($stav === null): ?>
-                        <a class="btn btn-sm btn-primary"
-                           href="<?= $link->url('prihlaska.create', ['id_kurz' => $k->getId()]) ?>">
-                            Prihlásiť
-                        </a>
-
-                    <?php elseif ($stav === 'zrusena'): ?>
-                        <a class="btn btn-sm btn-primary"
-                           href="<?= $link->url('prihlaska.create', ['id_kurz' => $k->getId()]) ?>"
-                           onclick="return confirm('Chcete podať prihlášku znova?');">
-                            Prihlásiť znova
-                        </a>
-
-                    <?php else: ?>
-                        <span class="badge bg-secondary"><?= htmlspecialchars($stav) ?></span>
-                    <?php endif; ?>
-
-                </td>
+                <th>Názov</th>
+                <th>Typ</th>
+                <th>Obdobie</th>
+                <th>Cena</th>
+                <th class="text-end">Akcia</th>
             </tr>
-        <?php endforeach; ?>
 
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+
+            <?php foreach ($kurzy as $k): ?>
+                <?php $kurzId = (int)$k->getId(); ?>
+                <tr>
+                    <td>
+                        <a href="<?= $link->url('kurzyUser.show', ['id_kurz' => $k->getId()]) ?>">
+                            <?= htmlspecialchars((string)$k->getNazov()) ?>
+                        </a>
+                    </td>
+
+                    <td>
+                        <?php $typId = (int)$k->getIdTypKurzu(); ?>
+                        <?= isset($typById[$typId]) ? htmlspecialchars((string)$typById[$typId]->getNazov()) : ('#' . $typId) ?>
+                    </td>
+
+                    <td>
+                        <?php $obdId = (int)$k->getIdObdobie(); ?>
+                        <?= isset($obdobieById[$obdId]) ? htmlspecialchars((string)$obdobieById[$obdId]->getNazov()) : ('#' . $obdId) ?>
+                    </td>
+
+                    <td>
+                        <?php if ($k->getCena() === null): ?>
+                            —
+                        <?php else: ?>
+                            <?= htmlspecialchars(number_format((float)$k->getCena(), 2, ',', ' ')) ?> €
+                        <?php endif; ?>
+                    </td>
+                    <td class="text-end">
+                        <?php $stav = $stavByKurzId[(int)$k->getId()] ?? null; ?>
+
+                        <?php if ($stav === null): ?>
+                            <a class="btn btn-sm btn-primary"
+                               href="<?= $link->url('prihlaska.create', ['id_kurz' => $k->getId()]) ?>">
+                                Prihlásiť
+                            </a>
+
+                        <?php elseif ($stav === 'zrusena'): ?>
+                            <a class="btn btn-sm btn-primary"
+                               href="<?= $link->url('prihlaska.create', ['id_kurz' => $k->getId()]) ?>"
+                               onclick="return confirm('Chcete podať prihlášku znova?');">
+                                Prihlásiť znova
+                            </a>
+
+                        <?php else: ?>
+                            <span class="badge bg-secondary"><?= htmlspecialchars($stav) ?></span>
+                        <?php endif; ?>
+
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+
+            </tbody>
+        </table>
+    </div>
 
 <?php endif; ?>

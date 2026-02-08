@@ -8,6 +8,7 @@ use App\Models\TypKurzu;
 use App\Models\Obdobie;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
+use Framework\Http\HttpException;
 
 class KurzyUserController extends UserBaseController
 {
@@ -76,12 +77,12 @@ class KurzyUserController extends UserBaseController
 
         $idKurz = (int)$request->value('id_kurz');
         if ($idKurz <= 0) {
-            throw new \Exception('Neplatné ID kurzu.');
+            throw new HttpException(400, 'Neplatné ID kurzu.');
         }
 
         $kurz = Kurz::getOne($idKurz);
         if ($kurz === null) {
-            throw new \Exception('Kurz neexistuje.');
+            throw new HttpException(404, 'Kurz neexistuje.');
         }
 
         // Application state (if exists)

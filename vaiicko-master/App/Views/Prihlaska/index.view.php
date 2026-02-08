@@ -24,52 +24,54 @@
         Zatiaľ nemáte žiadne prihlášky pre aktívnu osobu.
     </div>
 <?php else: ?>
-    <table class="table table-striped align-middle">
-        <thead>
-        <tr>
-            <th>ID</th>
-            <th>Kurz</th>
-            <th>Stav</th>
-            <th>Vytvorené</th>
-            <th>Akcie</th>
-        </tr>
-        </thead>
-        <tbody>
-        <?php foreach ($prihlasky as $p): ?>
-            <?php $kurzId = (int)$p->getIdKurz(); ?>
+    <div class="table-responsive table-sm-scroll">
+        <table class="table table-striped align-middle">
+            <thead>
             <tr>
-                <td><?= (int)$p->getId() ?></td>
-                <td>
-                    <?php if (isset($kurzById[$kurzId])): ?>
-                        <?= htmlspecialchars((string)$kurzById[$kurzId]->getNazov()) ?>
-                    <?php else: ?>
-                        #<?= $kurzId ?>
-                    <?php endif; ?>
-                </td>
-                <td>
-                <span class="badge bg-secondary">
-                    <?= htmlspecialchars((string)$p->getStav()) ?>
-                </span>
-                </td>
-                <td><?= htmlspecialchars((string)($p->getCreatedAt() ?? '')) ?></td>
-                <td>
-                    <a class="btn btn-sm btn-outline-secondary"
-                       href="<?= $link->url('prihlaska.show', ['id' => $p->getId()]) ?>">
-                        Detail
-                    </a>
-
-                    <?php if ($p->getStav() === 'nova'): ?>
-                        <a class="btn btn-sm btn-outline-danger ms-2"
-                           href="<?= $link->url('prihlaska.cancel', ['id' => $p->getId()]) ?>"
-                           onclick="return confirm('Naozaj chcete zrušiť prihlášku?');">
-                            Zrušiť
-                        </a>
-                    <?php endif; ?>
-                </td>
-
-
+                <th>ID</th>
+                <th>Kurz</th>
+                <th>Stav</th>
+                <th>Vytvorené</th>
+                <th>Akcie</th>
             </tr>
-        <?php endforeach; ?>
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+            <?php foreach ($prihlasky as $p): ?>
+                <?php $kurzId = (int)$p->getIdKurz(); ?>
+                <tr>
+                    <td><?= (int)$p->getId() ?></td>
+                    <td>
+                        <?php if (isset($kurzById[$kurzId])): ?>
+                            <?= htmlspecialchars((string)$kurzById[$kurzId]->getNazov()) ?>
+                        <?php else: ?>
+                            #<?= $kurzId ?>
+                        <?php endif; ?>
+                    </td>
+                    <td>
+                    <span class="badge bg-secondary">
+                        <?= htmlspecialchars((string)$p->getStav()) ?>
+                    </span>
+                    </td>
+                    <td><?= htmlspecialchars((string)($p->getCreatedAt() ?? '')) ?></td>
+                    <td>
+                        <a class="btn btn-sm btn-outline-secondary"
+                           href="<?= $link->url('prihlaska.show', ['id' => $p->getId()]) ?>">
+                            Detail
+                        </a>
+
+                        <?php if ($p->getStav() === 'nova'): ?>
+                            <a class="btn btn-sm btn-outline-danger ms-2"
+                               href="<?= $link->url('prihlaska.cancel', ['id' => $p->getId()]) ?>"
+                               onclick="return confirm('Naozaj chcete zrušiť prihlášku?');">
+                                Zrušiť
+                            </a>
+                        <?php endif; ?>
+                    </td>
+
+
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
 <?php endif; ?>

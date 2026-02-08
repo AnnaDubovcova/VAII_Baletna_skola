@@ -12,30 +12,32 @@
         Študent
     </div>
     <div class="card-body">
-        <table class="table table-sm mb-0">
-            <tbody>
-            <tr>
-                <th style="width: 220px;">Meno</th>
-                <td><?= htmlspecialchars((string)$osoba->getMeno()) ?></td>
-            </tr>
-            <tr>
-                <th>Priezvisko</th>
-                <td><?= htmlspecialchars((string)$osoba->getPriezvisko()) ?></td>
-            </tr>
-            <tr>
-                <th>Dátum narodenia</th>
-                <td><?= htmlspecialchars((string)$osoba->getDatumNarodenia()) ?></td>
-            </tr>
-            <tr>
-                <th>Email</th>
-                <td><?= htmlspecialchars((string)($osoba->getEmail() ?? '—')) ?></td>
-            </tr>
-            <tr>
-                <th>Telefón</th>
-                <td><?= htmlspecialchars((string)($osoba->getTelefon() ?? '—')) ?></td>
-            </tr>
-            </tbody>
-        </table>
+        <div class="table-responsive table-sm-scroll">
+            <table class="table table-sm mb-0">
+                <tbody>
+                <tr>
+                    <th style="width: 220px;">Meno</th>
+                    <td><?= htmlspecialchars((string)$osoba->getMeno()) ?></td>
+                </tr>
+                <tr>
+                    <th>Priezvisko</th>
+                    <td><?= htmlspecialchars((string)$osoba->getPriezvisko()) ?></td>
+                </tr>
+                <tr>
+                    <th>Dátum narodenia</th>
+                    <td><?= htmlspecialchars((string)$osoba->getDatumNarodenia()) ?></td>
+                </tr>
+                <tr>
+                    <th>Email</th>
+                    <td><?= htmlspecialchars((string)($osoba->getEmail() ?? '\u2014')) ?></td>
+                </tr>
+                <tr>
+                    <th>Telefón</th>
+                    <td><?= htmlspecialchars((string)($osoba->getTelefon() ?? '\u2014')) ?></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
@@ -44,26 +46,28 @@
         Zákonný zástupca
     </div>
     <div class="card-body">
-        <table class="table table-sm mb-0">
-            <tbody>
-            <tr>
-                <th style="width: 220px;">Meno</th>
-                <td><?= htmlspecialchars((string)($osoba->getZastupcaMeno() ?? '—')) ?></td>
-            </tr>
-            <tr>
-                <th>Priezvisko</th>
-                <td><?= htmlspecialchars((string)($osoba->getZastupcaPriezvisko() ?? '—')) ?></td>
-            </tr>
-            <tr>
-                <th>Email</th>
-                <td><?= htmlspecialchars((string)($osoba->getZastupcaEmail() ?? '—')) ?></td>
-            </tr>
-            <tr>
-                <th>Telefón</th>
-                <td><?= htmlspecialchars((string)($osoba->getZastupcaTelefon() ?? '—')) ?></td>
-            </tr>
-            </tbody>
-        </table>
+        <div class="table-responsive table-sm-scroll">
+            <table class="table table-sm mb-0">
+                <tbody>
+                <tr>
+                    <th style="width: 220px;">Meno</th>
+                    <td><?= htmlspecialchars((string)($osoba->getZastupcaMeno() ?? '\u2014')) ?></td>
+                </tr>
+                <tr>
+                    <th>Priezvisko</th>
+                    <td><?= htmlspecialchars((string)($osoba->getZastupcaPriezvisko() ?? '\u2014')) ?></td>
+                </tr>
+                <tr>
+                    <th>Email</th>
+                    <td><?= htmlspecialchars((string)($osoba->getZastupcaEmail() ?? '\u2014')) ?></td>
+                </tr>
+                <tr>
+                    <th>Telefón</th>
+                    <td><?= htmlspecialchars((string)($osoba->getZastupcaTelefon() ?? '\u2014')) ?></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 

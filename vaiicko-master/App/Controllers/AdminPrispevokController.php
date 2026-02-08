@@ -9,6 +9,7 @@ use App\Models\Udalost;
 use App\Models\Obdobie;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
+use Framework\Http\HttpException;
 
 class AdminPrispevokController extends AdminController
 {
@@ -24,7 +25,7 @@ class AdminPrispevokController extends AdminController
             $id = (int)$ctx['id'];
             $udalost = Udalost::getOne($id);
             if ($udalost === null) {
-                throw new \Exception('Udalosť nenájdená.');
+                throw new HttpException(404, 'Udalosť nenájdená.');
             }
 
             $prispevky = Prispevok::getAll(
@@ -50,7 +51,7 @@ class AdminPrispevokController extends AdminController
             $id = (int)$ctx['id'];
             $skupina = Skupina::getOne($id);
             if ($skupina === null) {
-                throw new \Exception('Skupina nenájdená.');
+                throw new HttpException(404, 'Skupina nenájdená.');
             }
 
             $prispevky = Prispevok::getAll(
@@ -103,7 +104,7 @@ class AdminPrispevokController extends AdminController
         $p = Prispevok::getOne($id);
 
         if ($p === null) {
-            throw new \Exception('Príspevok nenájdený.');
+            throw new HttpException(404, 'Príspevok nenájdený.');
         }
 
         $returnTo = $this->getSafeReturnTo($request);
@@ -160,7 +161,7 @@ class AdminPrispevokController extends AdminController
         $prispevok = Prispevok::getOne($id);
 
         if ($prispevok === null) {
-            throw new \Exception('Príspevok nenájdený.');
+            throw new HttpException(404, 'Príspevok nenájdený.');
         }
 
         $errors = [];
@@ -228,11 +229,15 @@ class AdminPrispevokController extends AdminController
 
     public function delete(Request $request): Response
     {
+        if (!$request->isPost()) {
+            throw new HttpException(405, 'Method Not Allowed');
+        }
+
         $id = (int)$request->value('id_prispevok');
         $p = Prispevok::getOne($id);
 
         if ($p === null) {
-            throw new \Exception('Príspevok nenájdený.');
+            throw new HttpException(404, 'Príspevok nenájdený.');
         }
 
         $returnTo = $this->getSafeReturnTo($request);
@@ -250,7 +255,7 @@ class AdminPrispevokController extends AdminController
         $skupina = Skupina::getOne($idSkupina);
 
         if ($skupina === null) {
-            throw new \Exception('Skupina nenájdená.');
+            throw new HttpException(404, 'Skupina nenájdená.');
         }
 
         $p = new Prispevok();
@@ -289,7 +294,7 @@ class AdminPrispevokController extends AdminController
         $udalost = Udalost::getOne($idUdalost);
 
         if ($udalost === null) {
-            throw new \Exception('Udalosť nenájdená.');
+            throw new HttpException(404, 'Udalosť nenájdená.');
         }
 
         $p = new Prispevok();
@@ -448,7 +453,7 @@ class AdminPrispevokController extends AdminController
 
         // pravidlo: len jeden kontext
         if ($idUdalost > 0 && $idSkupina > 0) {
-            throw new \Exception('Neplatný kontext: udalosť aj skupina naraz.');
+            throw new HttpException(400, 'Neplatný kontext: udalosť aj skupina naraz.');
         }
 
         if ($idUdalost > 0) {

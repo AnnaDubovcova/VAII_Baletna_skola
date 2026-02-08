@@ -6,6 +6,7 @@ use App\Models\Kurz;
 use App\Models\PrihlaskaKurz;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
+use Framework\Http\HttpException;
 
 class PrihlaskaController extends UserBaseController
 {
@@ -66,6 +67,10 @@ class PrihlaskaController extends UserBaseController
 
     public function create(Request $request): Response
     {
+        if (!$request->isPost()) {
+            throw new HttpException(405, 'Method Not Allowed');
+        }
+
         $idKurz = (int)$request->value('id_kurz');
 
         // Guard: active osoba must be selected and must belong to the logged-in user
@@ -78,10 +83,10 @@ class PrihlaskaController extends UserBaseController
         // Course must exist and be open
         $kurz = Kurz::getOne($idKurz);
         if ($kurz === null) {
-            throw new \Exception('Kurz nebol nájdený.');
+            throw new HttpException(404, 'Kurz nebol nájdený.');
         }
         if (!$kurz->isPrihlasovanieOtvorene()) {
-            throw new \Exception('Prihlasovanie na tento kurz nie je otvorené.');
+            throw new HttpException(403, 'Prihlasovanie na tento kurz nie je otvorené.');
         }
 
         // Check if application already exists (UX; DB should also enforce UNIQUE)
@@ -130,7 +135,7 @@ class PrihlaskaController extends UserBaseController
     {
         $id = (int)$request->value('id');
         if ($id <= 0) {
-            throw new \Exception('Neplatné ID prihlášky.');
+            throw new HttpException(400, 'Neplatné ID prihlášky.');
         }
 
         // Guard: active osoba must be selected and must belong to the logged-in user
@@ -142,12 +147,12 @@ class PrihlaskaController extends UserBaseController
 
         $prihlaska = PrihlaskaKurz::getOne($id);
         if ($prihlaska === null) {
-            throw new \Exception('Prihláška neexistuje.');
+            throw new HttpException(404, 'Prihláška neexistuje.');
         }
 
         // Application must belong to active osoba (and therefore to the logged-in user)
         if ((int)$prihlaska->getIdOsoba() !== (int)$activeOsobaId) {
-            throw new \Exception('K tejto prihláške nemáte prístup.');
+            throw new HttpException(403, 'K tejto prihláške nemáte prístup.');
         }
 
         $kurz = Kurz::getOne((int)$prihlaska->getIdKurz());
@@ -161,9 +166,13 @@ class PrihlaskaController extends UserBaseController
 
     public function cancel(Request $request): Response
     {
+        if (!$request->isPost()) {
+            throw new HttpException(405, 'Method Not Allowed');
+        }
+
         $id = (int)$request->value('id');
         if ($id <= 0) {
-            throw new \Exception('Neplatné ID prihlášky.');
+            throw new HttpException(400, 'Neplatné ID prihlášky.');
         }
 
         // Guard: active osoba must be selected and must belong to the logged-in user
@@ -175,11 +184,11 @@ class PrihlaskaController extends UserBaseController
 
         $prihlaska = PrihlaskaKurz::getOne($id);
         if ($prihlaska === null) {
-            throw new \Exception('Prihláška neexistuje.');
+            throw new HttpException(404, 'Prihláška neexistuje.');
         }
 
         if ((int)$prihlaska->getIdOsoba() !== (int)$activeOsobaId) {
-            throw new \Exception('K tejto prihláške nemáte prístup.');
+            throw new HttpException(403, 'K tejto prihláške nemáte prístup.');
         }
 
         if ($prihlaska->getStav() !== 'nova') {

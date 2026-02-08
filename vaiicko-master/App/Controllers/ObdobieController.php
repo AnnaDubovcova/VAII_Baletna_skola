@@ -4,6 +4,7 @@ namespace App\Controllers;
 use App\Models\Obdobie;
 
 use Framework\Core\BaseController;
+use Framework\Http\HttpException;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
 
@@ -55,7 +56,8 @@ class ObdobieController extends AdminController
 
         if ($obdobie === null) {
 
-            throw new \Exception('Obdobie nenájdené.');
+            throw new HttpException(404, 'Obdobie nenájdené.');
+
         }
 
         $errors = [];
@@ -82,7 +84,8 @@ class ObdobieController extends AdminController
         $obdobie = Obdobie::getOne($id_obdobie);
 
         if ($obdobie === null) {
-            throw new \Exception('Obdobie nenájdené.');
+            throw new HttpException(404, 'Obdobie nenájdené.');
+
         }
 
         try {

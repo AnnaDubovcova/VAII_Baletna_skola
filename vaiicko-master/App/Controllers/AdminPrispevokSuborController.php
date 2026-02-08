@@ -6,6 +6,7 @@ use App\Models\Prispevok;
 use App\Models\PrispevokSubor;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
+use Framework\Http\HttpException;
 
 class AdminPrispevokSuborController extends AdminController
 {
@@ -39,13 +40,13 @@ class AdminPrispevokSuborController extends AdminController
     public function upload(Request $request): Response
     {
         if (!$request->isPost()) {
-            return $this->redirect($this->url('adminPrispevok.index'));
+            throw new HttpException(405, 'Method Not Allowed');
         }
 
         $idPrispevok = (int)$request->value('id_prispevok');
         $prispevok = Prispevok::getOne($idPrispevok);
         if ($prispevok === null) {
-            throw new \Exception('Príspevok nenájdený.');
+            throw new HttpException(404, 'Príspevok nenájdený.');
         }
 
         $returnTo = $this->getSafeReturnTo($request)
@@ -109,13 +110,13 @@ class AdminPrispevokSuborController extends AdminController
     public function delete(Request $request): Response
     {
         if (!$request->isPost()) {
-            return $this->redirect($this->url('adminPrispevok.index'));
+            throw new HttpException(405, 'Method Not Allowed');
         }
 
         $idSubor = (int)$request->value('id_prispevok_subor');
         $subor = PrispevokSubor::getOne($idSubor);
         if ($subor === null) {
-            throw new \Exception('Súbor nenájdený.');
+            throw new HttpException(404, 'Súbor nenájdený.');
         }
 
         $returnTo = $this->getSafeReturnTo($request)

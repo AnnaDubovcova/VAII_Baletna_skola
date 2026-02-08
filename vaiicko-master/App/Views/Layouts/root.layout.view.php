@@ -168,10 +168,8 @@
 
         <!-- Hlavný obsah -->
         <main class="col-12 col-md-9 col-lg-10 py-4 main-content">
-            <div class="container-fluid">
-                <div class="web-content">
-                    <?= $contentHTML ?>
-                </div>
+            <div class="web-content">
+                <?= $contentHTML ?>
             </div>
         </main>
     </div>

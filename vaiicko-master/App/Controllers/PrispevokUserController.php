@@ -8,6 +8,7 @@ use App\Models\Udalost;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
 use App\Models\PrispevokSubor;
+use Framework\Http\HttpException;
 
 
 class PrispevokUserController extends UserBaseController
@@ -41,7 +42,7 @@ class PrispevokUserController extends UserBaseController
 
             $skupina = Skupina::getOne($idSkupina);
             if ($skupina === null) {
-                throw new \Exception('Skupina nenájdená.');
+                throw new HttpException(404, 'Skupina nenájdená.');
             }
 
             // ochrana: user musí byť členom skupiny
@@ -75,7 +76,7 @@ class PrispevokUserController extends UserBaseController
             // aby si mala názov udalosti vo view, načítame aj model (ak chceš, môžeš si spraviť helper “getNazovForOsoba”)
             $udalost = Udalost::getOne($idUdalost);
             if ($udalost === null) {
-                throw new \Exception('Udalosť nenájdená.');
+                throw new HttpException(404, 'Udalosť nenájdená.');
             }
 
             $prispevky = Prispevok::getAll(

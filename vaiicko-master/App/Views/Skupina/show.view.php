@@ -14,21 +14,23 @@
         Skupina
     </div>
     <div class="card-body">
-        <table class="table table-sm mb-0">
-            <tbody>
-            <tr>
-                <th style="width: 220px;">Názov</th>
-                <td><?= htmlspecialchars((string)$skupina->getNazov()) ?></td>
-            </tr>
-            <tr>
-                <th>Popis</th>
-                <td>
-                    <?php $popis = trim((string)$skupina->getPopis()); ?>
-                    <?= $popis !== '' ? nl2br(htmlspecialchars($popis)) : '—' ?>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+        <div class="table-responsive table-sm-scroll">
+            <table class="table table-sm mb-0">
+                <tbody>
+                <tr>
+                    <th style="width: 220px;">Názov</th>
+                    <td><?= htmlspecialchars((string)$skupina->getNazov()) ?></td>
+                </tr>
+                <tr>
+                    <th>Popis</th>
+                    <td>
+                        <?php $popis = trim((string)$skupina->getPopis()); ?>
+                        <?= $popis !== '' ? nl2br(htmlspecialchars($popis)) : '\u2014' ?>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
@@ -41,33 +43,35 @@
         <?php if (empty($members)): ?>
             <div class="text-muted">Skupina zatiaľ nemá žiadnych členov.</div>
         <?php else: ?>
-            <table class="table table-sm table-striped align-middle mb-0">
-                <thead>
-                <tr>
-                    <th>Meno</th>
-                </tr>
-                </thead>
-                <tbody>
-                <?php foreach ($members as $m): ?>
+            <div class="table-responsive table-sm-scroll">
+                <table class="table table-sm table-striped align-middle mb-0">
+                    <thead>
                     <tr>
-                        <td>
-                            <?php $fullName = trim((string)$m->getMeno() . ' ' . (string)$m->getPriezvisko()); ?>
-
-                            <?php if ($user->isAdmin()): ?>
-                                <a href="<?= $link->url('osoba.show', [
-                                        'id_osoba' => $m->getId(),
-                                        'return_to' => $_SERVER['REQUEST_URI'] ?? $link->url('skupina.index')
-                                ]) ?>">
-                                    <?= htmlspecialchars($fullName) ?>
-                                </a>
-                            <?php else: ?>
-                                <?= htmlspecialchars($fullName) ?>
-                            <?php endif; ?>
-                        </td>
+                        <th>Meno</th>
                     </tr>
-                <?php endforeach; ?>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($members as $m): ?>
+                        <tr>
+                            <td>
+                                <?php $fullName = trim((string)$m->getMeno() . ' ' . (string)$m->getPriezvisko()); ?>
+
+                                <?php if ($user->isAdmin()): ?>
+                                    <a href="<?= $link->url('osoba.show', [
+                                            'id_osoba' => $m->getId(),
+                                            'return_to' => $_SERVER['REQUEST_URI'] ?? $link->url('skupina.index')
+                                    ]) ?>">
+                                        <?= htmlspecialchars($fullName) ?>
+                                    </a>
+                                <?php else: ?>
+                                    <?= htmlspecialchars($fullName) ?>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
         <?php endif; ?>
     </div>
 </div>

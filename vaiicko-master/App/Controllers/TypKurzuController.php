@@ -6,6 +6,7 @@ use App\Models\TypKurzu;
 use Framework\Core\BaseController;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
+use Framework\Http\HttpException;
 
 class TypKurzuController extends AdminController
 {
@@ -55,7 +56,7 @@ class TypKurzuController extends AdminController
         $typ_kurzu = TypKurzu::getOne($id_typ_kurzu);
 
         if ($typ_kurzu === null) {
-            throw new \Exception('Typ kurzu nenájdený.');
+            throw new HttpException(404, 'Typ kurzu nenájdený.');
         }
 
         $errors = [];
@@ -80,11 +81,15 @@ class TypKurzuController extends AdminController
 
     public function delete(Request $request): Response
     {
+        if (!$request->isPost()) {
+            throw new HttpException(405, 'Method Not Allowed');
+        }
+
         $id_typ_kurzu = (int)$request->value('id_typ_kurzu');
         $typ = TypKurzu::getOne($id_typ_kurzu);
 
         if ($typ === null) {
-            throw new \Exception('Typ kurzu nenájdený.');
+            throw new HttpException(404, 'Typ kurzu nenájdený.');
         }
 
         try {

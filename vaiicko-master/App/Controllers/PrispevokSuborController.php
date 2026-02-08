@@ -6,6 +6,7 @@ use App\Models\Prispevok;
 use App\Models\PrispevokSubor;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
+use Framework\Http\HttpException;
 
 class PrispevokSuborController extends AppController
 {
@@ -27,12 +28,12 @@ class PrispevokSuborController extends AppController
         $idSubor = (int)$request->value('id_prispevok_subor');
         $subor = PrispevokSubor::getOne($idSubor);
         if ($subor === null) {
-            throw new \Exception('Súbor nenájdený.');
+            throw new HttpException(404, 'Súbor nenájdený.');
         }
 
         $prispevok = Prispevok::getOne((int)$subor->getIdPrispevok());
         if ($prispevok === null) {
-            throw new \Exception('Príspevok nenájdený.');
+            throw new HttpException(404, 'Príspevok nenájdený.');
         }
 
 // --- AUTORIZÁCIA ---
@@ -66,7 +67,7 @@ class PrispevokSuborController extends AppController
 
         $path = rtrim($this->uploadDir(), '/') . '/' . (string)$subor->getStoredName();
         if (!is_file($path)) {
-            throw new \Exception('Súbor na disku neexistuje.');
+            throw new HttpException(404, 'Súbor na disku neexistuje.');
         }
 
         // --- SEND FILE ---
@@ -85,18 +86,18 @@ class PrispevokSuborController extends AppController
         $idSubor = (int)$request->value('id_prispevok_subor');
         $subor = PrispevokSubor::getOne($idSubor);
         if ($subor === null) {
-            throw new \Exception('Súbor nenájdený.');
+            throw new HttpException(404, 'Súbor nenájdený.');
         }
 
         // povol len obrázky
         $mime = (string)$subor->getMimeType();
         if (!in_array($mime, ['image/jpeg', 'image/png'], true)) {
-            throw new \Exception('Preview je dostupný len pre obrázky.');
+            throw new HttpException(403, 'Preview je dostupný len pre obrázky.');
         }
 
         $prispevok = Prispevok::getOne((int)$subor->getIdPrispevok());
         if ($prispevok === null) {
-            throw new \Exception('Príspevok nenájdený.');
+            throw new HttpException(404, 'Príspevok nenájdený.');
         }
 
         // --- autorizácia rovnaká ako v download() ---
@@ -121,7 +122,7 @@ class PrispevokSuborController extends AppController
 
         $path = rtrim($this->uploadDir(), '/') . '/' . (string)$subor->getStoredName();
         if (!is_file($path)) {
-            throw new \Exception('Súbor na disku neexistuje.');
+            throw new HttpException(404, 'Súbor na disku neexistuje.');
         }
 
         header('Content-Type: ' . $mime);

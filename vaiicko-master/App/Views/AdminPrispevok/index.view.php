@@ -98,71 +98,72 @@ function prispevokSnippet(?string $text, int $max = 140): string {
 <?php if (empty($prispevky)): ?>
     <p class="text-muted">Zatiaľ nie sú žiadne príspevky.</p>
 <?php else: ?>
-    <table class="table table-striped align-middle">
-        <thead>
-        <tr>
-            <th>Názov</th>
-            <th>Viditeľnosť</th>
-            <th>Obsah</th>
-            <th>Vytvorené</th>
-            <th class="text-end">Akcie</th>
-        </tr>
-
-        </thead>
-        <tbody>
-        <?php foreach ($prispevky as $p): ?>
+    <div class="table-responsive table-sm-scroll">
+        <table class="table table-striped align-middle">
+            <thead>
             <tr>
-                <td>
-
-                    <div class="fw-semibold"><?= htmlspecialchars((string)$p->getNazov()) ?></div>
-                </td>
-
-
-                <td>
-    <span class="badge bg-light text-dark border">
-        <?= htmlspecialchars(prispevokViditelnostLabel($p, $obdobiaMap, $skupinyMap, $udalostiMap)) ?>
-    </span>
-                </td>
-
-                <td>
-                    <div class="text-muted" style="font-size: 0.95em;">
-                        <?= htmlspecialchars(prispevokSnippet($p->getObsah())) ?>
-                    </div>
-                </td>
-
-                <td>
-                    <?= $p->getCreatedAt()
-                            ? date('d.m.Y H:i', strtotime((string)$p->getCreatedAt()))
-                            : '' ?>
-                </td>
-                <td>
-
-                <td class="text-end">
-                    <a class="btn btn-outline-secondary btn-sm"
-                       href="<?= $link->url('adminPrispevok.show', [
-                               'id_prispevok' => $p->getId(),
-                               'return_to' => $selfUrl
-                       ]) ?>">
-                        Detail
-                    </a>
-                    <a class="btn btn-outline-primary btn-sm"
-                       href="<?= $link->url('adminPrispevok.edit', [
-                               'id_prispevok' => $p->getId(),
-                               'return_to' => $selfUrl
-                       ]) ?>">
-                        Upraviť
-                    </a>
-                    <a class="btn btn-outline-danger btn-sm"
-                       href="<?= $link->url('adminPrispevok.delete', [
-                               'id_prispevok' => $p->getId(),
-                               'return_to' => $selfUrl
-                       ]) ?>"
-                       onclick="return confirm('Naozaj zmazať príspevok?');">
-                        Zmazať
-                    </a>
-                </td>
+                <th>Názov</th>
+                <th>Viditeľnosť</th>
+                <th>Obsah</th>
+                <th>Vytvorené</th>
+                <th class="text-end">Akcie</th>
             </tr>
-        <?php endforeach; ?>
-        </tbody>
-    </table>
+
+            </thead>
+            <tbody>
+            <?php foreach ($prispevky as $p): ?>
+                <tr>
+                    <td>
+
+                        <div class="fw-semibold"><?= htmlspecialchars((string)$p->getNazov()) ?></div>
+                    </td>
+
+
+                    <td>
+        <span class="badge bg-light text-dark border">
+            <?= htmlspecialchars(prispevokViditelnostLabel($p, $obdobiaMap, $skupinyMap, $udalostiMap)) ?>
+        </span>
+                    </td>
+
+                    <td>
+                        <div class="text-muted" style="font-size: 0.95em;">
+                            <?= htmlspecialchars(prispevokSnippet($p->getObsah())) ?>
+                        </div>
+                    </td>
+
+                    <td>
+                        <?= $p->getCreatedAt()
+                                ? date('d.m.Y H:i', strtotime((string)$p->getCreatedAt()))
+                                : '' ?>
+                    </td>
+
+                    <td class="text-end">
+                        <a class="btn btn-outline-secondary btn-sm"
+                           href="<?= $link->url('adminPrispevok.show', [
+                                   'id_prispevok' => $p->getId(),
+                                   'return_to' => $selfUrl
+                           ]) ?>">
+                            Detail
+                        </a>
+                        <a class="btn btn-outline-primary btn-sm"
+                           href="<?= $link->url('adminPrispevok.edit', [
+                                   'id_prispevok' => $p->getId(),
+                                   'return_to' => $selfUrl
+                           ]) ?>">
+                            Upraviť
+                        </a>
+                        <a class="btn btn-outline-danger btn-sm"
+                           href="<?= $link->url('adminPrispevok.delete', [
+                                   'id_prispevok' => $p->getId(),
+                                   'return_to' => $selfUrl
+                           ]) ?>"
+                           onclick="return confirm('Naozaj zmazať príspevok?');">
+                            Zmazať
+                        </a>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
 <?php endif; ?>
