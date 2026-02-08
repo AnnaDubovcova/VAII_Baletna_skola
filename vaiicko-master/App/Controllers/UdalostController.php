@@ -52,12 +52,15 @@ class UdalostController extends AdminController
 
         $returnTo = $this->getSafeReturnTo($request);
 
+        $ucast = $this->getUcastOverview($id);
 
         return $this->html([
             'udalost' => $udalost,
             'skupiny' => $skupiny,
             'returnTo' => $returnTo,
+            'ucast' => $ucast,
         ]);
+
     }
 
 
@@ -357,6 +360,31 @@ class UdalostController extends AdminController
 
         return $returnTo;
     }
+
+    private function getUcastOverview(int $idUdalost): array
+    {
+        $con = Connection::getInstance();
+        $stmt = $con->prepare("
+            SELECT DISTINCT
+                o.id_osoba,
+                o.meno,
+                o.priezvisko,
+                uu.stav,
+                uu.updated_at
+            FROM osoba o
+            JOIN osoba_skupina os ON os.id_osoba = o.id_osoba
+            JOIN udalost_skupina us ON us.id_skupina = os.id_skupina
+            LEFT JOIN udalost_ucast uu
+              ON uu.id_udalost = us.id_udalost
+             AND uu.id_osoba = o.id_osoba
+            WHERE us.id_udalost = :u
+            ORDER BY o.priezvisko ASC, o.meno ASC
+        ");
+        $stmt->execute(['u' => $idUdalost]);
+
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
 
 
 }
