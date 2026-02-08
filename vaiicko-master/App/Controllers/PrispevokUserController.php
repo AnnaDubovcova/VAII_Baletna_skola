@@ -7,6 +7,8 @@ use App\Models\Skupina;
 use App\Models\Udalost;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
+use App\Models\PrispevokSubor;
+
 
 class PrispevokUserController extends UserBaseController
 {
@@ -67,10 +69,14 @@ class PrispevokUserController extends UserBaseController
             return $this->redirect($this->url('prispevokUser.index'));
         }
 
+        $subory = PrispevokSubor::getAllForPrispevok((int)$p->getId());
+
         return $this->html([
             'prispevok' => $p,
             'activeOsoba' => $activeOsoba,
+            'subory' => $subory,
         ]);
+
     }
 
     private function loadSkupinaMap(array $ids): array

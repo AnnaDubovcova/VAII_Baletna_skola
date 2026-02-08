@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\Prispevok;
+use App\Models\PrispevokSubor;
 use App\Models\Skupina;
 use App\Models\Udalost;
 use App\Models\Obdobie;
@@ -92,9 +93,12 @@ class AdminPrispevokController extends AdminController
 
         $returnTo = $this->getSafeReturnTo($request);
 
+        $subory = PrispevokSubor::getAllForPrispevok((int)$p->getId());
+
         return $this->html([
             'prispevok' => $p,
             'returnTo' => $returnTo,
+            'subory' => $subory,
         ]);
     }
 

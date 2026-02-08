@@ -3,6 +3,8 @@
 namespace App\Controllers;
 
 use App\Models\Prispevok;
+use App\Models\PrispevokSubor;
+
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
 
@@ -29,8 +31,12 @@ class PrispevokPublicController extends AppController
             return $this->redirect($this->url('prispevokPublic.index'));
         }
 
+        $subory = PrispevokSubor::getAllForPrispevok((int)$p->getId());
+
         return $this->html([
             'prispevok' => $p,
+            'subory' => $subory,
         ]);
+
     }
 }
